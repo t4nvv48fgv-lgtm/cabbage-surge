@@ -2,3 +2,4 @@ data/processed/
 outputs/*.csv
 __pycache__/
 *.pyc
+catboost_info/

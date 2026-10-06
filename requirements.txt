@@ -1,0 +1,22 @@
+# 2026-10-06 기준 설치 확인 버전 (Python 3.13, Windows, CPU)
+numpy==2.2.3
+pandas==2.2.3
+scipy==1.16.2
+scikit-learn==1.7.2
+statsmodels==0.14.6
+matplotlib==3.10.5
+openpyxl==3.1.5
+torch==2.11.0
+optuna==4.8.0
+# --- 2026-10-06 추가 설치 ---
+lightgbm==4.7.0
+xgboost==3.4.1
+catboost==1.2.10
+shap==0.52.0
+mapie==1.5.0
+quantile-forest==1.4.2
+skforecast==0.25.0
+pmdarima==2.1.1
+statsforecast==2.1.1
+prophet==1.5.0
+chronos-forecasting==2.3.2   # amazon/chronos-2 가중치는 첫 실행 시 HF Hub에서 자동 다운로드

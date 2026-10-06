@@ -27,7 +27,10 @@ python src/anomaly_model.py W
 python src/plot_2024.py
 ```
 
-콘솔 한글 깨짐 시 `PYTHONIOENCODING=utf-8` 지정. 설치된 ML 라이브러리: sklearn, statsmodels, pandas, scipy, matplotlib, torch(CPU). lightgbm·xgboost·catboost 없음.
+콘솔 한글 깨짐 시 `PYTHONIOENCODING=utf-8` 지정. Python 3.13. 설치 라이브러리는 `requirements.txt` 참조:
+sklearn, statsmodels, torch(CPU) 외에 2026-10-06 추가로 lightgbm·xgboost·catboost, shap, mapie(정합예측), quantile-forest,
+skforecast, pmdarima, statsforecast(AutoETS/AutoARIMA/MSTL), prophet, chronos-forecasting(Chronos-2, CPU 추론 확인) 사용 가능.
+node 없음(dataviz 팔레트 검증기 실행 불가).
 
 ## 규칙
 
