@@ -40,9 +40,6 @@ def main() -> None:
     fig, ax = plt.subplots(figsize=(10, 5.2), dpi=150)
     for col, label, color, lw, ls in SERIES:
         ax.plot(df.origin, df[col] / 1000, color=color, lw=lw, ls=ls, label=label)
-        last = df.iloc[-1]
-        ax.annotate(label, (last.origin, last[col] / 1000), xytext=(6, 0), textcoords="offset points",
-                    va="center", fontsize=8.5, color="#444")
     ax.axvspan(pd.Timestamp("2024-08-31"), pd.Timestamp("2024-09-30"), color="#000", alpha=0.05, lw=0)
     ax.text(pd.Timestamp("2024-09-15"), ax.get_ylim()[1] * 0.97, "9월 대상 구간", ha="center", va="top", fontsize=8.5, color="#666")
     ax.set_title("2024년 여름 — 주간 원점별 향후 28일 평균가격 예측 (가락 상품, 천원/10kg)", fontsize=11, loc="left")
