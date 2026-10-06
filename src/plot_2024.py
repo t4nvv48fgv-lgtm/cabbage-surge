@@ -26,6 +26,8 @@ plt.rcParams["axes.unicode_minus"] = False
 SERIES = [
     ("actual", "실제(향후 28일 평균)", "#1f1f1f", 2.2, "-"),
     ("price_only_ridge", "가격만(ridge)", "#9467bd", 1.8, "--"),
+    ("chronos2", "Chronos-2 제로샷", "#2ca02c", 1.5, ":"),
+    ("mstl_ets", "MSTL+ETS", "#8c564b", 1.5, ":"),
     ("wx_ridge", "기상 ridge", "#1f77b4", 1.8, "-"),
     ("an_ridge_all", "계절편차 ridge", "#d6604d", 1.8, "-"),
 ]

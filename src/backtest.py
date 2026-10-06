@@ -11,6 +11,8 @@ Models
   wx_ridge         : price + weather + inflow + gov
   wx_hgb           : HistGradientBoosting on the same features
   wx_hgb_summer    : HGB trained on summer-origin rows only (6~9월), falls back to wx_hgb otherwise
+  chronos2         : Chronos-2 zero-shot on the monthly(weekly)-mean price series (KREI 세미나자료 계열, ts_baselines.py)
+  mstl_arima/_ets  : MSTL + AutoARIMA / AutoETS on log monthly(weekly) means (KREI STL-조합 연구 계열)
 Outputs: outputs/backtest_predictions.csv, outputs/backtest_metrics.csv, outputs/surge_cases.csv
 """
 from __future__ import annotations
@@ -25,6 +27,8 @@ from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.linear_model import Ridge
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
+
+import ts_baselines
 
 warnings.filterwarnings("ignore")
 ROOT = Path(__file__).resolve().parents[1]
@@ -49,6 +53,7 @@ WX_FEATS = [
 import os
 BASE = os.environ.get("SURGE_BASE", "lp28")   # 예측 기준점: lp28(최근28일 평균) 또는 lp7(최근7일 평균)
 TARGET = "y_chg"            # log(next28 mean) - BASE  (run()에서 재계산)
+TS_BASELINES = {"chronos2": ts_baselines.chronos2, "mstl_arima": ts_baselines.mstl, "mstl_ets": ts_baselines.mstl}
 FIRST_ORIGIN = "2016-01-31"
 
 
@@ -127,8 +132,17 @@ def run(models: list[str], origin_freq: str = "M") -> pd.DataFrame:
                "lp28": te.lp28.iloc[0], "actual": te.y_price_fwd28_true.iloc[0],
                "summer": int(te.summer.iloc[0])}
         yh = {}
+        ts_done: set = set()
         for name in models:
             if name == "wx_ens":
+                continue
+            if name in TS_BASELINES:
+                # univariate series models: predicted price directly (prices only up to origin)
+                fn = TS_BASELINES[name]
+                if fn not in ts_done:
+                    rec.update(fn(o, origin_freq))
+                    ts_done.add(fn)
+                yh[name] = float(np.log(rec[name]) - te[BASE].iloc[0])
                 continue
             yh[name] = fit_predict(name, tr, te)
             rec[name] = float(np.exp(te[BASE].iloc[0] + yh[name]))
@@ -167,7 +181,8 @@ def surge_cases(pred: pd.DataFrame, models: list[str]) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    models = ["naive_last28", "seasonal_naive", "price_only_ridge", "wx_ridge", "wx_hgb", "wx_hgb_summer", "wx_hgb_w", "wx_ens"]
+    models = ["naive_last28", "seasonal_naive", "price_only_ridge", "chronos2", "mstl_arima", "mstl_ets",
+              "wx_ridge", "wx_hgb", "wx_hgb_summer", "wx_hgb_w", "wx_ens"]
     freq = sys.argv[1] if len(sys.argv) > 1 else "M"
     OUT.mkdir(exist_ok=True)
     pred = run(models, freq)
