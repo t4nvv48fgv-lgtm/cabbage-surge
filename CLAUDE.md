@@ -48,5 +48,14 @@ node 없음(dataviz 팔레트 검증기 실행 불가).
 ## 읽기 순서
 
 1. `CLAUDE.md` (이 파일)
-2. `docs/HANDOFF_20261006.md` — 최신 인수인계서(배경·데이터·결과·실패 기록·다음 작업)
-3. `README.md`
+2. `AGENTS.md` — 권위 가드레일(2026-10-07 이식). 이 파일과 충돌하면 **`AGENTS.md`를 따른다**.
+3. `docs/HANDOFF_20261006.md` — 모형 쪽 정본 인수인계서(배경·데이터·결과·실패 기록·다음 작업)
+4. `wiki/handoff-next-session.md` — 그 이후 세션 블록(최신이 위)
+5. `README.md`
+
+논문화 작업 시 추가로:
+
+6. `docs/PAPER_SPEC.md` · `docs/OUTLINE.md` · `docs/STYLE_GUIDE.md` — 사양·목차·표기(**전부 미승인 초안**, 2026-10-07)
+7. `docs/PAPER_WRITING_PLAYBOOK.md` — `Desktop\논문`에서 정리한 작성·수정 규칙·절차·프롬프트
+8. 원고 수정 전 `docs/EDIT_CHECKLIST.md`, 집필 전·투고 전 `wiki/risk-audit.md`, 방어 논리는 `wiki/presentation-defense.md`
+9. 검산 `py tools/check_style_rules.py manuscript/main.md`(프로젝트 사전 `tools/style_rules_local.py`), 빌드는 `AGENTS.md` 검증 절의 pandoc 명령
