@@ -3,3 +3,6 @@ outputs/*.csv
 __pycache__/
 *.pyc
 catboost_info/
+experiments/*/outputs/*.csv
+experiments/*/outputs/*.log
+outputs/*.log

@@ -19,8 +19,8 @@
 주의: 규칙 형태와 상수는 2024-08 사례를 본 뒤 정했다(사후 설계, risk-audit R-1). 발동 사례 수와 임계 민감도를 함께 보고한다.
 aT 자료는 2021~ 이므로 그 이전 원점은 sev=0 (= 중위수).
 
-Usage: python src/trigger_quantile.py [M|W]
-Outputs: outputs/trigger_quantile_predictions{tag}.csv, trigger_quantile_metrics{tag}.csv
+Usage: python experiments/case01_release_trigger/trigger_quantile.py [M|W]   (메인 outputs/backtest_predictions{tag}.csv 필요)
+Outputs: experiments/case01_release_trigger/outputs/trigger_quantile_predictions{tag}.csv, _metrics{tag}.csv, _sensitivity{tag}.csv
 """
 from __future__ import annotations
 
@@ -31,13 +31,17 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-import ts_baselines
+# 독립 케이스(experiments/case01_release_trigger). 메인 src/는 읽기만 하고 수정하지 않는다.
+CASE_DIR = Path(__file__).resolve().parent
+ROOT = CASE_DIR.parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+import ts_baselines  # noqa: E402  (src/ts_baselines.py 재사용)
 
 warnings.filterwarnings("ignore")
-ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "data" / "raw"
 PROC = ROOT / "data" / "processed"
-OUT = ROOT / "outputs"
+MAIN_OUT = ROOT / "outputs"            # 메인 backtest_predictions{tag}.csv 의 원점 집합을 읽음
+OUT = CASE_DIR / "outputs"             # 케이스 산출물은 여기에만 쓴다
 QL = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 FIRST_ORIGIN = "2021-01-31"          # aT 방출 자료 시작 이후만
 ACT_T, DROP_T, UP_T = 300.0, 0.5, 0.10
@@ -88,7 +92,7 @@ def run(freq: str) -> pd.DataFrame:
     feats = pd.read_csv(PROC / "daily_features.csv", parse_dates=["date"]).set_index("date")
     rel = load_release()
     tag = "" if freq == "M" else f"_{freq}"
-    base = pd.read_csv(OUT / f"backtest_predictions{tag}.csv", parse_dates=["origin"])
+    base = pd.read_csv(MAIN_OUT / f"backtest_predictions{tag}.csv", parse_dates=["origin"])
     base = base[base.origin >= FIRST_ORIGIN]
     rows = []
     for _, r in base.iterrows():
