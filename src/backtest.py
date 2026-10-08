@@ -8,7 +8,7 @@ Models
   naive_last28     : next 28d = last 28d mean
   seasonal_naive   : next 28d = same window last year
   price_only_ridge : lags/seasonality only  (~ what KREI/Chronos-type models see)
-  wx_ridge         : price + weather + inflow + gov
+  wx_ridge         : price + weather + inflow   (정부 방출 피처는 2026-10-08 제외, SUPPLY_FEATS 주석 참조)
   wx_hgb           : HistGradientBoosting on the same features
   wx_hgb_summer    : HGB trained on summer-origin rows only (6~9월), falls back to wx_hgb otherwise
   chronos2         : Chronos-2 zero-shot on the monthly(weekly)-mean price series (KREI 세미나자료 계열, ts_baselines.py)
@@ -39,7 +39,11 @@ PRICE_FEATS = [
     "lp7", "lp28", "lp90", "lp28_lag364", "lp28_lag728", "mom7_28", "mom28_90", "yoy28",
     "vol28", "dlp7", "dlp14", "sin1", "cos1", "sin2", "cos2",
 ]
-SUPPLY_FEATS = ["lq7", "lq28", "qyoy28", "qmom7_28", "gov30", "gov60"]
+# 2026-10-08: gov30/gov60(정부 방출 30/60일 합) 제외. stock.csv 방출은 2022~만 있고 수집 누락이 0으로 들어가
+# 2016~2021 학습구간이 전부 0 → 2022-08 첫 등장 때 선형 모형 외삽 사고(기상 ridge 2022-09 −59%, 계절편차 ridge −52%).
+# 제외 시 기상 ridge MAPE 17.2→15.0%, 2022-09 −31%; 2024-09는 변화 없음. 정부 방출은 experiments/case01 트리거로만 사용.
+SUPPLY_FEATS = ["lq7", "lq28", "qyoy28", "qmom7_28"]
+GOV_FEATS_EXCLUDED = ["gov30", "gov60"]
 SPREAD_FEATS = ["spread_hm7", "spread_hm28", "dspread_hm", "spread_sh28", "spread_yoy"]  # 검증 결과 노이즈 → 기본 제외
 WX_FEATS = [
     "H_hot30_sum14", "H_hot30_sum30", "H_hot30_sum60", "H_hot33_sum30",

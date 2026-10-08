@@ -33,14 +33,16 @@ CORE = [
     "H_hot30_sum30", "H_hot30_sum60", "H_h_tmax_anom_mean30", "H_h_tmax_anom_mean60",
     "H_h_tmin_anom_mean30", "H_tropical_sum30",
     "H_h_rain_anom_mean30", "H_h_rain_anom_mean60", "H_heavy50_sum30", "H_heavy50_sum60",
-    "qyoy28", "qmom7_28", "gov30",
+    "qyoy28", "qmom7_28",
 ]
 SPARSE = [
     "cur_anom7", "dlp7",
     "H_h_tmax_anom_mean30", "H_hot30_sum60",
     "H_h_rain_anom_mean30", "H_heavy50_sum60",
-    "qyoy28", "gov30",
+    "qyoy28",
 ]
+# 2026-10-08: gov30(정부 방출 30일 합) 제외 — stock.csv 방출은 2022~만 있어 학습구간이 0으로 채워지고,
+# 2022-08 첫 등장 때 외삽 사고(an_ridge_all 2022-09 −52% → 제외 시 −12%, MAPE 16.3→15.6%). 상세는 backtest.py 주석·README.
 
 
 def add_normals(df: pd.DataFrame) -> pd.DataFrame:
