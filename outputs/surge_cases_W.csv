@@ -1,0 +1,2 @@
+origin,target_start,target_end,lp28,actual,summer,naive_last28,seasonal_naive,price_only_ridge,chronos2,chronos2_q10,chronos2_q90,mstl_arima,mstl_ets,wx_ridge,wx_hgb,wx_hgb_summer,wx_hgb_w,wx_ens,naive_last28_err%,seasonal_naive_err%,price_only_ridge_err%,chronos2_err%,mstl_arima_err%,mstl_ets_err%,wx_ridge_err%,wx_hgb_err%,wx_hgb_summer_err%,wx_hgb_w_err%,wx_ens_err%
+2025-08-31,2025-09-01,2025-09-28,9.5,13343.8,1,12765.7,17410.3,12154.5,13665.8,9656.9,20089.6,15782.8,15782.7,14214.6,15030.8,15367.6,13834.0,14351.2,-4.3,30.5,-8.9,2.4,18.3,18.3,6.5,12.6,15.2,3.7,7.5

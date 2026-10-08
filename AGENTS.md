@@ -36,7 +36,7 @@ CABIS 저장소(`C:\Users\user\Desktop\CABIS`)의 지침·가드레일은 여기
 - `outputs\*.png` — 추적되는 그림(재생성은 가능하나 결과표와 함께 갱신)
 - `submitted\*`, `deliverable\*` — (생기면) 제출본·최종본, 읽기 전용
 
-`data\processed\`·`outputs\*.csv`·`build\`는 스크립트로 재생성하는 파생물이라 보호 대상이 아니다. 마스터 원고·bib를 대량 치환·재배열하기 전에는 백업한다.
+`data\processed\`·`outputs\*.csv`·`build\`는 스크립트로 재생성하는 파생물이라 보호 대상이 아니다(단, `data\processed\`·`outputs\*.csv`는 2026-10-09부터 git 추적하므로 코드·원자료 변경 시 재실행해 같은 커밋에 넣는다). 마스터 원고·bib를 대량 치환·재배열하기 전에는 백업한다.
 
 ## 절대 규칙 (학술 무결성)
 

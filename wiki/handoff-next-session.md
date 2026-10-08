@@ -1,13 +1,42 @@
 ---
 type: reference
 tags: [handoff]
-date: 2026-10-07
+date: 2026-10-09
 ---
 
 # 인계 노트 — 다음 세션 시작점
 
 > 세션을 마칠 때마다 맨 위에 날짜 블록을 추가한다(양식: 사용자 결정 → 한 일 → 현재 상태 → 다음 할 일 → 함정 → 판단 대기 → 기각안). 모형 쪽 상세 이력(배경·데이터·결과·실패 기록)은 `docs/HANDOFF_20261006.md`가 정본이고, 이 파일은 그 뒤의 세션 블록을 쌓는다.
 > **새 세션은 이 폴더 단독으로 연다.** `Desktop\논문`·`Desktop\생육`은 작업 디렉터리에 없으며, 필요한 규칙은 전부 이 폴더 안(`AGENTS.md`, `docs/PAPER_WRITING_PLAYBOOK.md`)에 들어 있다.
+
+## 2026-10-09 — 맥북 세팅 완료·산출물 git 추적 전환 (새 세션은 이 블록부터)
+
+### ① 사용자 결정
+- **산출물(`data/processed/`·`outputs/*.csv`·`experiments/*/outputs/*.csv`)을 git에 추적한다.** 기기를 바꿀 때마다 40분 재생성을 반복하는 게 비효율이라는 판단. 크기는 피처 4.7MB + CSV 200KB.
+
+### ② 한 일
+- 맥북(`~/파운데이션모델/cabbage-surge`)에 clone, 저장소 로컬 config에 커밋 신원(CABIS Codex) 설정.
+- `.venv`(Python 3.13.2, arm64)에 `requirements.txt` **핀 그대로** 설치 성공(torch 2.11.0·prophet·pmdarima·catboost 포함, 핀 조정 불필요).
+- 아래 §3 절차로 전 산출물 재생성. 소요: 월간 백테스트 4.5분, 주간 17분(코어 8개 사용). Chronos-2 가중치 HF Hub 자동 다운로드 확인.
+- **재현 검증**: 월간·주간 지표, 계절편차 2024-09 −6%·2025-08 +28% 모두 README 결과표와 소수점까지 일치. 회사 PC(Windows)와 맥 결과가 같음.
+- `.gitignore`에서 산출물 제외 해제. CLAUDE.md·AGENTS.md·`docs/HANDOFF_20261006.md`·이 파일 §3의 "gitignore" 서술을 "추적"으로 갱신.
+
+### ③ 현재 상태
+- Git: 이 커밋으로 산출물 CSV 9개 + `daily_features.csv` 추적 시작. 회사 PC에서는 `git pull` 후 바로 README 수치의 원본 파일을 볼 수 있다.
+- 회사 PC의 로컬 산출물은 pull 때 추적 파일로 덮어써도 내용이 같다(결정적).
+
+### ④ 다음 할 일
+- 2026-10-07 블록 ④의 1~6 그대로(논문화 여부 확정이 먼저).
+
+### ⑤ 함정
+- **코드·원자료·피처를 바꾸면 산출물을 재생성해 같은 커밋에 넣는다.** 산출물이 코드보다 오래된 채 push하면 README 수치의 출처가 어긋난다.
+- 두 기기에서 같은 산출물을 각각 재생성해 커밋하면 PNG가 바이너리 충돌을 낸다. 재생성은 한 기기에서만 하고 다른 기기는 pull.
+
+### ⑥ 🔴 사용자 판단 대기
+- 2026-10-07 블록 ⑥ 그대로.
+
+### ⑦ 기각안·확정 결정
+- 확정: 산출물 git 추적(2026-10-09). 기각: "결과는 재현하므로 올리지 않는다"는 2026-10-08 설계.
 
 ## 맥북(또는 다른 PC) 세팅 절차 — 2026-10-08 작성
 
@@ -30,17 +59,19 @@ pip install -r requirements.txt
 - Chronos-2 가중치(`amazon/chronos-2`)는 첫 실행 때 Hugging Face Hub에서 자동 다운로드(인터넷 필요, 수백 MB). `HF_TOKEN` 없이도 동작하나 경고가 뜸.
 - 콘솔 한글: 맥은 기본 UTF-8이라 `PYTHONIOENCODING` 지정 불필요.
 
-### 3. 산출물 재생성 (gitignore라 clone에 없음)
+### 3. 산출물 (2026-10-09부터 git 추적 — clone만으로 바로 있음)
+`data/processed/daily_features.csv`(4.7MB)·`outputs/*.csv`(200KB)·`experiments/*/outputs/*.csv`는 **2026-10-09부터 추적**한다. 기기를 바꿀 때마다 40분짜리 재생성을 반복하지 않기 위한 결정(사용자, 맥북 세션). 로그·`catboost_info/`·`.venv/`만 gitignore.
+**규칙: 코드(`src/`)·원자료(`data/raw/`)·피처를 바꿨으면 아래를 다시 돌리고, 바뀐 산출물을 같은 커밋에 넣는다.** 산출물이 코드보다 오래된 상태로 push하지 않는다.
 ```bash
 python src/build_features.py            # data/processed/daily_features.csv (98열)
-python src/backtest.py M                # outputs/backtest_*.csv (Chronos·MSTL 포함, 월말 ~10분)
+python src/backtest.py M                # outputs/backtest_*.csv (Chronos·MSTL 포함, 월말 ~5분, 맥 M시리즈 기준)
 python src/anomaly_model.py M
-python src/backtest.py W                # 주간은 ~30분
+python src/backtest.py W                # 주간은 ~15분(맥), 코어 8개를 거의 다 씀
 python src/anomaly_model.py W
 python src/plot_2024.py
 ```
 케이스(`experiments/caseNN_*/`)는 각 `CASE.md`의 재실행 절 참조. case01·case02는 메인 `outputs/backtest_predictions*.csv`가 먼저 있어야 함.
-결과표 수치는 README와 같아야 정상(선형 모형은 결정적, HGB·LightGBM은 ±2~3%p).
+결과표 수치는 README와 같아야 정상. 2026-10-09 맥북에서 `requirements.txt` 핀 그대로 설치해 재실행한 월간 결과는 README와 **소수점까지 일치**(HGB도 `random_state=0`이라 같은 패키지 버전이면 결정적. ±2~3%p 차이는 패키지 버전이 다를 때 이야기).
 
 ### 4. 맥에서 다른 점·함정
 - `src/sync_from_cabis.py`는 CABIS 폴더가 **형제 폴더**(`../CABIS`)에 있다고 가정. 맥에 CABIS가 없으면 실행하지 않는다(스냅숏 2026-10-06 그대로 사용). 있으면 `--cabis <경로>`로 지정. CABIS 쪽 파일은 읽기만.

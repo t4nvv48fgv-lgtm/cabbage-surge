@@ -13,7 +13,7 @@ KREI 두 연구(Chronos-2 파운데이션 모형 세미나자료 2026-09-30, STL
 
 - `data/raw/`: CABIS에서 복사한 스냅숏(2026-10-06). 여기서 직접 수정하지 않는다.
 - 갱신: `python src/sync_from_cabis.py` (CABIS → data/raw 복사만 수행. CABIS 쪽 수집 실행은 하지 않음).
-- `data/processed/`, `outputs/*.csv`는 산출물(gitignore). 그림(`outputs/*.png`)은 추적.
+- `data/processed/`, `outputs/*.csv`, `experiments/*/outputs/*.csv`는 스크립트 산출물이지만 **2026-10-09부터 git 추적**(기기 간 재생성 비용 때문). 코드·원자료를 바꾸면 재실행해 바뀐 산출물을 같은 커밋에 넣는다. 로그·`.venv/`만 gitignore.
 - 가격 단위 원/10kg 상품(가락). KREI 세미나자료는 원/kg 단위이므로 비교 시 10배.
 
 ## 실행 순서
