@@ -20,8 +20,10 @@ Models
   all_anom_sparse 계절 정상치 편차 타깃, SPARSE + 핵심 EXTRA, Ridge alpha 0.3
   chronos2_cov    Chronos-2 제로샷 + 과거 공변량(월별 기상·반입·정부방출)
 
-Usage: python src/all_data_model.py [M|W]
-Outputs: outputs/alldata_predictions{tag}.csv, alldata_metrics{tag}.csv, alldata_surge_cases{tag}.csv
+Usage (루트에서):
+  python experiments/case02_all_data_fit/case_features.py        # 메인 daily_features.csv → 확장 피처
+  python experiments/case02_all_data_fit/all_data_model.py [M|W]  # 메인 outputs/backtest_predictions·anomaly_predictions 와 병합 비교
+Outputs: experiments/case02_all_data_fit/outputs/alldata_predictions{tag}.csv, alldata_metrics{tag}.csv, alldata_surge_cases{tag}.csv
 """
 from __future__ import annotations
 
@@ -38,14 +40,18 @@ from sklearn.linear_model import Ridge
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-import backtest as bt
-import anomaly_model as am
-import ts_baselines
+# 독립 케이스(experiments/case02_all_data_fit). 메인 src/는 import만 하고 수정하지 않는다.
+CASE_DIR = Path(__file__).resolve().parent
+ROOT = CASE_DIR.parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+import backtest as bt          # noqa: E402  피처 목록·interact_summer·metrics·surge_cases 재사용
+import anomaly_model as am     # noqa: E402  add_normals·CORE·SPARSE 재사용
+import ts_baselines            # noqa: E402  Chronos-2 파이프라인 재사용
 
 warnings.filterwarnings("ignore")
-ROOT = Path(__file__).resolve().parents[1]
-PROC = ROOT / "data" / "processed"
-OUT = ROOT / "outputs"
+MAIN_OUT = ROOT / "outputs"                              # 메인 backtest_predictions / anomaly_predictions (비교용, 읽기만)
+OUT = CASE_DIR / "outputs"                               # 케이스 산출물
+FEATS_EXT = OUT / "daily_features_ext.csv"               # case_features.py 산출물
 
 EXTRA_FEATS = [
     "govpur30", "govpur60", "govpur_avail",
@@ -128,7 +134,7 @@ def chronos2_cov(df: pd.DataFrame, origin: pd.Timestamp, freq: str) -> dict[str,
 
 
 def run(models: list[str], freq: str = "M") -> pd.DataFrame:
-    df = pd.read_csv(PROC / "daily_features.csv", parse_dates=["date"]).set_index("date")
+    df = pd.read_csv(FEATS_EXT, parse_dates=["date"]).set_index("date")
     df[bt.TARGET] = df["y_lp_fwd28"] - df[bt.BASE]
     df = am.add_normals(df)
     core_req = bt.PRICE_FEATS + bt.SUPPLY_FEATS + bt.WX_FEATS            # 원점 포함 조건은 backtest.py 와 동일
@@ -168,12 +174,12 @@ def compare_with_existing(pred: pd.DataFrame, models: list[str], freq: str) -> t
     ref_cols = ["price_only_ridge", "chronos2", "mstl_ets", "wx_ridge", "wx_hgb"]
     out = pred.copy()
     try:
-        b = pd.read_csv(OUT / f"backtest_predictions{tag}.csv", parse_dates=["origin"])
+        b = pd.read_csv(MAIN_OUT / f"backtest_predictions{tag}.csv", parse_dates=["origin"])
         out = out.merge(b[["origin"] + [c for c in ref_cols if c in b.columns]], on="origin", how="left")
     except FileNotFoundError:
         ref_cols = []
     try:
-        a = pd.read_csv(OUT / f"anomaly_predictions{tag}.csv", parse_dates=["origin"])
+        a = pd.read_csv(MAIN_OUT / f"anomaly_predictions{tag}.csv", parse_dates=["origin"])
         out = out.merge(a[["origin", "an_ridge_all"]], on="origin", how="left")
         ref_cols = ref_cols + ["an_ridge_all"]
     except FileNotFoundError:

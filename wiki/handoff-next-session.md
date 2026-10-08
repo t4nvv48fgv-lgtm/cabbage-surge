@@ -33,6 +33,9 @@ date: 2026-10-07
 - `trigger_quantile.py` 신설: 심각도 = act(직전 2주 방출/300t) × drop(최근 7일 감소율/0.5) × up(7일 가격 상승/0.10), 분위수 수준 = 0.5+0.4×sev, Chronos-2 분위수 0.1~0.9 원점별 재계산 후 선형보간. 이진 변형·상수 민감도(27조합)·주간 원점 포함.
 - 사용자 결정: "진행시켜"(연속 분위수 구현 승인). **2026-10-08 추가 결정: 이것은 "이렇게 해보면 어떨까" 수준의 아이디어 케이스이므로 메인을 훼손하지 말고 하나의 케이스로 보관.**
   → `experiments/case01_release_trigger/`로 이동(스크립트·산출물·`CASE.md`). 메인 `src/`는 `ts_baselines` import만. README는 "아이디어 케이스" 표 한 줄, CLAUDE.md에 `experiments/` 규칙 신설.
+- **2026-10-08 사용자 요청으로 all_data_model도 `experiments/case02_all_data_fit/`로 분리.** 메인 `src/build_features.py`에 넣었던 `[all-data 확장]` 블록을 **원복**(15734a2 상태, 98열)하고
+  확장 피처 생성을 케이스 안 `case_features.py`(메인 함수 import, 산출 `outputs/daily_features_ext.csv` 131열)로 옮김. 메인 `data/processed/daily_features.csv` 재빌드(98열). 새 위치에서 M 재실행 결과 동일(all LightGBM 13.8%, 실행 간 ±0.1%p).
+  **메인 `src/`는 이제 10-06 상태와 동일**(all_data·trigger 흔적 없음).
 
 ### ③ 현재 상태 (월말 원점, 2026-10-07 실행)
 - **트리거 연속 분위수(월말)**: 2024-08-31→9월 **+0.4%**(중위수 −18%), 2025-08 −12%(거짓 경보 없음), MAPE 17.9→**17.3%**, 여름 19.7→18.6%. 심각도>0.5 발동 1건(2024-08, 0.84). 상수 27조합 전부 MAPE 17.3~18.0%, 2025-08은 −11~−12% 고정 → 이진 규칙보다 안정.
