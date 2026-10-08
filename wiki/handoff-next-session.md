@@ -9,6 +9,46 @@ date: 2026-10-07
 > 세션을 마칠 때마다 맨 위에 날짜 블록을 추가한다(양식: 사용자 결정 → 한 일 → 현재 상태 → 다음 할 일 → 함정 → 판단 대기 → 기각안). 모형 쪽 상세 이력(배경·데이터·결과·실패 기록)은 `docs/HANDOFF_20261006.md`가 정본이고, 이 파일은 그 뒤의 세션 블록을 쌓는다.
 > **새 세션은 이 폴더 단독으로 연다.** `Desktop\논문`·`Desktop\생육`은 작업 디렉터리에 없으며, 필요한 규칙은 전부 이 폴더 안(`AGENTS.md`, `docs/PAPER_WRITING_PLAYBOOK.md`)에 들어 있다.
 
+## 맥북(또는 다른 PC) 세팅 절차 — 2026-10-08 작성
+
+원격 https://github.com/t4nvv48fgv-lgtm/cabbage-surge (공개, main). 코드·문서·**데이터 스냅숏 `data/raw/`(6.3MB)**·`requirements.txt`가 추적되므로 CABIS 저장소 없이도 전체 재현 가능.
+
+### 1. 받기
+```bash
+git clone https://github.com/t4nvv48fgv-lgtm/cabbage-surge.git
+cd cabbage-surge
+git -c user.name="CABIS Codex" -c user.email="iahpa@icloud.com" log -1 --oneline   # 커밋 신원은 이 PC와 같게 -c 옵션 사용(또는 저장소 로컬 config 설정)
+```
+
+### 2. Python 환경 (3.13, CPU)
+```bash
+python3.13 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+```
+- torch는 CPU 버전으로 충분. 맥 arm64에서는 `pip install torch`가 기본으로 CPU/MPS 휠을 받으며 `requirements.txt`의 2.11.0 핀이 안 맞으면 핀을 풀고 최신 CPU 휠로 설치.
+- `prophet`·`pmdarima`·`catboost`는 맥에서 컴파일이 걸릴 수 있음 — 모형 재현에 **필수는 아님**(사용 모형: sklearn·statsforecast·lightgbm·chronos-forecasting). 설치가 막히면 그 네 개를 빼고 진행.
+- Chronos-2 가중치(`amazon/chronos-2`)는 첫 실행 때 Hugging Face Hub에서 자동 다운로드(인터넷 필요, 수백 MB). `HF_TOKEN` 없이도 동작하나 경고가 뜸.
+- 콘솔 한글: 맥은 기본 UTF-8이라 `PYTHONIOENCODING` 지정 불필요.
+
+### 3. 산출물 재생성 (gitignore라 clone에 없음)
+```bash
+python src/build_features.py            # data/processed/daily_features.csv (98열)
+python src/backtest.py M                # outputs/backtest_*.csv (Chronos·MSTL 포함, 월말 ~10분)
+python src/anomaly_model.py M
+python src/backtest.py W                # 주간은 ~30분
+python src/anomaly_model.py W
+python src/plot_2024.py
+```
+케이스(`experiments/caseNN_*/`)는 각 `CASE.md`의 재실행 절 참조. case01·case02는 메인 `outputs/backtest_predictions*.csv`가 먼저 있어야 함.
+결과표 수치는 README와 같아야 정상(선형 모형은 결정적, HGB·LightGBM은 ±2~3%p).
+
+### 4. 맥에서 다른 점·함정
+- `src/sync_from_cabis.py`는 CABIS 폴더가 **형제 폴더**(`../CABIS`)에 있다고 가정. 맥에 CABIS가 없으면 실행하지 않는다(스냅숏 2026-10-06 그대로 사용). 있으면 `--cabis <경로>`로 지정. CABIS 쪽 파일은 읽기만.
+- pandoc(논문 빌드)은 `brew install pandoc`. `AGENTS.md` 검증 절의 명령은 PowerShell 표기(`\`)이므로 맥에서는 `/`로.
+- `tools/check_style_rules.py`는 `py` 런처가 아니라 `python`으로.
+- 두 기기를 번갈아 쓸 때: **시작 전 `git pull`, 끝나면 `git push`**. 논문 폴더에서 로컬이 원격보다 13커밋 뒤처진 사고가 있었음(2026-10-07 발견). 세션 종료 시 이 파일 맨 위에 날짜 블록을 추가하는 규칙은 기기와 무관.
+- 원격은 공개 저장소. CABIS 내부 경로·실명·API 키·미발간 자료 본문 커밋 금지(AGENTS.md).
+
 ## 2026-10-07 (2차) — 전체 데이터 피팅 탐색 (새 세션은 이 블록부터)
 
 ### ① 사용자 결정
