@@ -1,0 +1,5 @@
+# CSV·텍스트 산출물 줄바꿈 LF 통일 (Windows pandas가 CRLF로 써도 커밋 시 LF로 정규화)
+*.csv text eol=lf
+*.md text eol=lf
+*.py text eol=lf
+*.png binary
