@@ -29,6 +29,7 @@ CABIS 저장소(`C:\Users\user\Desktop\CABIS`)의 지침·가드레일은 여기
 사용자가 명시적으로 승인하지 않으면 편집·삭제·덮어쓰기 금지:
 
 - `data\raw\*` — CABIS 스냅숏(읽기 전용). 갱신은 `src\sync_from_cabis.py`로만(단방향 복사).
+- `data\ext\*` — 사용자가 제공한 외부 자료 원본(읽기 전용, 2026-10-09~). 등록 시 `data\ext\README.md`에 출처·기준일·인용 가능 확인을 적는다. 공개 저장소이므로 사용자가 인용·커밋 가능을 확인한 자료만.
 - `manuscript\main.md` — 마스터 원고(**진실의 원천**)
 - `references.bib` — 참고문헌 원본
 - `docs\PAPER_SPEC.md`, `docs\OUTLINE.md` — 논지·구조의 정본(**현재 미승인 초안** — 사용자 승인 후 정본으로 승격)
