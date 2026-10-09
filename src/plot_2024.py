@@ -29,14 +29,14 @@ SERIES = [
     ("chronos2", "Chronos-2 제로샷", "#2ca02c", 1.5, ":"),
     ("mstl_ets", "MSTL+ETS", "#8c564b", 1.5, ":"),
     ("wx_ridge", "기상 ridge", "#1f77b4", 1.8, "-"),
-    ("an_ridge_all", "계절편차 ridge", "#d6604d", 1.8, "-"),
+    ("an_sparse_all", "계절편차 희소 ridge(사전선택)", "#d6604d", 1.8, "-"),   # 2026-10-09 대표 사양으로 교체(이전 an_ridge_all)
 ]
 
 
 def main() -> None:
     b = pd.read_csv(OUT / "backtest_predictions_W.csv", parse_dates=["origin"])
     a = pd.read_csv(OUT / "anomaly_predictions_W.csv", parse_dates=["origin"])
-    df = b.merge(a[["origin", "an_ridge_all"]], on="origin")
+    df = b.merge(a[["origin", "an_sparse_all"]], on="origin")
     df = df[(df.origin >= "2024-06-01") & (df.origin <= "2024-11-10")]
 
     fig, ax = plt.subplots(figsize=(10, 5.2), dpi=150)

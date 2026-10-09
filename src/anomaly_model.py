@@ -70,6 +70,9 @@ def run(freq: str = "M") -> pd.DataFrame:
     origins = origins[(origins >= FIRST_ORIGIN) & (origins <= df.index.max())]
 
     specs = {
+        # 대표 사양(2026-10-09, 사용자 결정): experiments/case03 에서 2016~2023 원점만으로 고른 사양(SPARSE·전체 학습·alpha 10).
+        # 사전 선택이라 R-1(사후 설계) 방어가 서고, 학습 풀 정의·추출 시작점·alpha 1~30 에 결론이 안정(2024-09 −9.5~−12.4%, 2025-08 +20~+22%).
+        "an_sparse_all":   (SPARSE, False, lambda: make_pipeline(StandardScaler(), Ridge(alpha=10.0))),
         "an_ridge_all":    (CORE,   False, lambda: make_pipeline(StandardScaler(), Ridge(alpha=1.0))),
         "an_ridge_summer": (CORE,   True,  lambda: make_pipeline(StandardScaler(), Ridge(alpha=1.0))),
         "an_sparse_summer": (SPARSE, True, lambda: make_pipeline(StandardScaler(), Ridge(alpha=0.3))),
