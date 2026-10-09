@@ -1,0 +1,15 @@
+family,criterion,id,design_all_MAPE,design_summer_MAPE,valid_all_MAPE,valid_summer_MAPE,err_2020-08,err_2022-08,err_2024-08,err_2025-08
+ridge,design_all_MAPE,ridge|price|a30,18.35,24.72,13.97,18.68,-35.42,-32.74,-36.98,-7.28
+ridge,design_summer_MAPE,ridge|price+supply+wx|a100,18.98,22.99,11.98,12.33,-25.20,-34.91,-27.74,5.94
+ridge,HINDSIGHT valid_all_MAPE,ridge|price+supply+wx|a10,19.85,24.99,11.55,11.26,-25.17,-39.31,-26.05,3.70
+anom,design_all_MAPE,anom|SPARSE|all|a10,19.46,24.00,13.35,16.82,-20.26,-15.13,-11.15,21.97
+anom,design_summer_MAPE,anom|SPARSE|all|a10,19.46,24.00,13.35,16.82,-20.26,-15.13,-11.15,21.97
+anom,HINDSIGHT valid_all_MAPE,anom|CORE|summer|a10,20.91,27.91,11.67,12.83,-21.30,-11.52,-11.57,26.75
+hgb,design_all_MAPE,hgb|all|d6_lr0.04,17.84,24.64,13.82,16.27,-31.18,-23.83,-27.56,16.47
+hgb,design_summer_MAPE,hgb|all|d3_lr0.04,17.96,23.51,12.27,15.76,-27.81,-39.97,-28.54,8.93
+hgb,HINDSIGHT valid_all_MAPE,hgb|summer|d4_lr0.04,18.07,25.03,11.00,11.74,-26.32,-25.55,-33.57,15.17
+ridge,MAIN(wx_ridge),ridge|price+supply+wx×summer|a10,20.10,28.12,12.24,10.97,-20.16,-31.44,-23.78,6.53
+hgb,MAIN(wx_hgb),hgb|all|d4_lr0.04,17.95,24.65,12.15,15.18,-27.61,-32.99,-26.27,12.64
+hgb,MAIN(wx_hgb_summer),hgb|summer|d4_lr0.04,18.07,25.03,11.00,11.74,-26.32,-25.55,-33.57,15.17
+anom,MAIN(an_ridge_all),anom|CORE|all|a1,20.00,25.04,12.84,16.74,-22.37,-14.72,-12.55,19.63
+anom,MAIN(an_sparse_summer),anom|SPARSE|summer|a0.3,20.07,25.83,11.75,12.11,-13.72,-4.54,-11.05,22.61

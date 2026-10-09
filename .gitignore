@@ -5,3 +5,4 @@ catboost_info/
 experiments/*/outputs/*.log
 outputs/*.log
 .DS_Store
+experiments/case02_all_data_fit/outputs/daily_features_ext.csv   # 6.3MB 파생 피처(메인 daily_features + 33열), case_features.py로 재생성
