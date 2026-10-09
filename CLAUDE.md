@@ -25,6 +25,7 @@ python src/backtest.py W          # 주간 원점
 python src/anomaly_model.py M
 python src/anomaly_model.py W
 python src/plot_2024.py
+python tools/make_report.py       # 쉬운 말 결과 보고서 PDF(docs/배추급등예측_결과보고서_YYYY-MM-DD.pdf). 수치는 outputs/*.csv에서 직접 읽음
 ```
 
 콘솔 한글 깨짐 시 `PYTHONIOENCODING=utf-8` 지정. Python 3.13. 설치 라이브러리는 `requirements.txt` 참조:
