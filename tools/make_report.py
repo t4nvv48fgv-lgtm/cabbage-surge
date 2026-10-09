@@ -292,6 +292,10 @@ def build(out_path: Path) -> None:
     best_mape = min(mp, key=mp.get)
     wk = w.set_index("origin")
     wk_err = lambda d, c: float((wk.loc[d, c] / wk.loc[d, "actual"] - 1) * 100)
+    oos = None   # 2026-08-31 표본외 원점(자료 갱신 후 존재할 때만)
+    if (m.origin == "2026-08-31").any():
+        oos = {"actual": float(m[m.origin == "2026-08-31"].actual.iloc[0])}
+        oos.update({c: err_at(m, "2026-08-31", c) for c, _, _ in MODELS})
     sel_row = None
     if sel is not None:
         r = sel[(sel.family == "anom") & (sel.criterion == "design_all_MAPE")]
@@ -359,6 +363,10 @@ def build(out_path: Path) -> None:
                 f"{e25[HEAD]:+.0f}%로, 오르지 않을 값을 오른다고 한 셈입니다. 여름만 학습한 사후 설정은 {e24['an_sparse_summer']:+.0f}%까지 따라가지만 "
                 f"2025년 거짓 경보가 {e25['an_sparse_summer']:+.0f}%로 더 큽니다."),
               B("급등을 잘 따라가는 모형일수록 급등 없는 해에 과대 예측하는 맞교환 관계가 뚜렷합니다."),
+              ] + ([B(f"<b>2026년 9월(표본외, 자료 갱신으로 새로 열린 원점)</b>: 2026년 여름은 고랭지 폭염이 없어 서늘했고 9월 가격은 {oos['actual']:,.0f}원으로 급등이 없었습니다. "
+                      f"대표 모형은 {oos[HEAD]:+.0f}%로 거짓 경보를 내지 않았고(가격만 보는 모형 {oos['price_only_ridge']:+.0f}%, Chronos-2 {oos['chronos2']:+.0f}%), "
+                      "2025년의 거짓 경보가 '폭염이 있는데 급등이 없는 해'에 국한된 현상임을 보여주는 첫 표본외 사례입니다. 한 건이므로 사례로만 봅니다.")]
+                   if oos is not None else []) + [
               P("3-2. 평소 정확도는 어떤가", "h2"),
               P(f"2021~2025년 {n60}번의 월말 예측에서 평균 오차율(MAPE)입니다. 낮을수록 좋고, 주황 점선이 가격만 보는 모형의 기준선입니다."),
               fig_mape(m),
