@@ -9,3 +9,5 @@ outputs/*.log
 experiments/case02_all_data_fit/outputs/daily_features_ext.csv
 # 외부·내부 자료 원본 중 공개 저장소에 올리지 않는 것(사용자 승인 전). 목록은 data/ext/CATALOG.md 에 기록
 data/local/
+# 농넷 패널 parquet 는 csv.gz 에서 재생성(build_panel.py) → 정본은 csv.gz 만 추적
+data/ext/nongnet/*.parquet
