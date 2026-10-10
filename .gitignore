@@ -7,3 +7,5 @@ outputs/*.log
 .DS_Store
 # 6.3MB 파생 피처(메인 daily_features + 33열), case_features.py로 재생성
 experiments/case02_all_data_fit/outputs/daily_features_ext.csv
+# 외부·내부 자료 원본 중 공개 저장소에 올리지 않는 것(사용자 승인 전). 목록은 data/ext/CATALOG.md 에 기록
+data/local/
