@@ -33,6 +33,7 @@ python tools/make_model_guide.py  # 최종 모형 설명서 PDF(docs/배추급�
 ```
 
 게이트 신호 원천 `data/ext/krei_summer_issues.csv`(KREI 월보 호별 여름배추 전망, 공개 수치). 매해 새 호가 나오면 줄을 추가하고 gate_model을 재실행한다.
+**월보 가용 시점 규약(2026-10-12, 사용자 사실)**: 사용자가 월보 담당자라 m월호 내용을 (m−1)월 말 원점에 이미 안다 → m월호 값은 전월 말 원점에서 가용으로 둘 수 있다(규약 B). 게이트는 규약 A(호 월 5일)와 B에서 2021~2026 결과가 동일. 월보 **가격 전망치·출하량 전망**을 쓰는 실험(case14 후보)은 규약 B로 설계한다.
 
 콘솔 한글 깨짐 시 `PYTHONIOENCODING=utf-8` 지정. Python 3.13. 설치 라이브러리는 `requirements.txt` 참조:
 sklearn, statsmodels, torch(CPU) 외에 2026-10-06 추가로 lightgbm·xgboost·catboost, shap, mapie(정합예측), quantile-forest,
