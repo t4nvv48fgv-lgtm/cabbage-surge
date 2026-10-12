@@ -1,0 +1,22 @@
+﻿subset,model,n,MAE,RMSE,MAPE%,bias,over30,over40
+product_2021_2025_all_months,final,60.0,1134.6,1498.2,11.6,-361.4,4.0,1.0
+product_2021_2025_all_months,final_base,60.0,1251.0,1748.8,12.2,-477.8,5.0,1.0
+product_2021_2025_all_months,gate_hgb,60.0,1386.8,1936.3,13.2,-692.4,4.0,1.0
+product_2021_2025_all_months,an_sparse_all,60.0,1578.3,2106.2,15.6,-560.9,6.0,4.0
+product_2021_2025_all_months,price_only_ridge,60.0,1700.2,2482.2,15.1,-1191.1,7.0,1.0
+product_2021_2025_all_months,chronos2,60.0,1806.8,2375.1,17.9,-728.5,11.0,6.0
+product_2021_2025_all_months,mstl_ets,60.0,2078.4,2755.7,20.8,-133.3,14.0,11.0
+product_2021_2025_all_months,mstl_arima,60.0,2106.2,2783.4,20.9,-417.5,18.0,6.0
+product_2021_2025_all_months,STL 연구보고(인용),,1856.0,2457.0,,,,
+bulletin_months_2021_2025,krei_bulletin,50.0,1769.2,2535.0,16.1,-283.8,7.0,3.0
+bulletin_months_2021_2025,final,50.0,1232.6,1605.3,12.4,-383.0,4.0,1.0
+bulletin_months_2021_2025,gate_hgb,50.0,1495.0,2051.5,14.0,-706.6,4.0,1.0
+bulletin_months_2021_2025,price_only_ridge,50.0,1866.7,2666.4,16.2,-1333.8,7.0,1.0
+bulletin_months_2021_2025,chronos2,50.0,1954.2,2511.2,19.1,-726.6,10.0,6.0
+bulletin_months_2021_2025,mstl_ets,50.0,2287.6,2939.6,22.8,-121.0,14.0,11.0
+bulletin_months_2016_2025,krei_bulletin,96.0,1826.2,2626.7,18.2,-522.2,21.0,8.0
+bulletin_months_2016_2025,final,96.0,1434.4,1956.5,15.9,-466.4,12.0,6.0
+bulletin_months_2016_2025,gate_hgb,96.0,1622.9,2228.8,17.3,-659.1,13.0,7.0
+bulletin_months_2016_2025,price_only_ridge,96.0,1877.2,2675.6,18.8,-1031.9,18.0,7.0
+bulletin_months_2016_2025,chronos2,96.0,2190.4,2930.5,23.4,-467.8,25.0,14.0
+bulletin_months_2016_2025,mstl_ets,96.0,2169.7,2836.6,23.4,-205.9,28.0,21.0
