@@ -12,6 +12,8 @@
 
 | `krei_summer_issues.csv` (2026-10-12 등록) | CABIS 월보 호별 판독표 `krei_series_보완_20260921.xlsx`(`data/local/`, 비공개)에서 추출 | **KREI 농업관측 월보 호별 여름배추(당해년산) 재배면적·생산량 전망과 전년비** 2021-03호~2026-09호. 열: year, issue_month, pub_date(호 월 5일로 둔 보수적 가정), area_ha, prod_t, area_yoy, prod_yoy. 메인 `src/gate_model.py`의 게이트 신호 S1 원천 | 2026-09호까지 | KREI 농업관측센터 월보(공개 발간물)의 수치. 생성 `experiments/case06_supply_gate/supply_gate.py:krei_summer_signal` |
 
+| `krei_nonsummer_issues.csv` (2026-10-12 등록) | 같은 판독표에서 추출(`experiments/case16_season_supply_adjust/outputs/issues_nonsummer_2021_2026.csv`의 복사본) | **KREI 농업관측 월보 호별 겨울·봄·가을배추 생산량·면적 전망 전년비** 2021~2026. 열: season, sub, crop_year, year, issue_month, prod_yoy, area_yoy, label. 메인 `src/gate_model.py`의 잔차 β 층이 **가을 행만** 사용(대상월 11~12월). 겨울·봄 행은 현재 미사용 | 2026-09호까지 | KREI 농업관측센터 월보(공개 발간물)의 수치. 생성 `experiments/case16_season_supply_adjust/season_supply_adjust.py:load_issues` |
+
 주의
 - `krei_summer_issues.csv`의 `pub_date`는 실제 게시일이 아니라 "호 월 5일" 가정이다(8월호 실제 게시 8/1~8/5). 2025년 6월호부터 면적 기준이 바뀌어(4,964→3,418ha) 연도 간 수준 비교는 불가, 호 안의 전년비만 쓴다.
 - 농넷 정리본의 `variety_std`는 원 품종명을 10개로 표준화한 것(고랭지·여름·봄·저장·월동·가을·쌈·절임·수입·기타·기타부산물). 매핑은 build_panel.py 상단. 시장명은 "도매시장/도매" 접미를 제거해 이전 추출본(`농넷_배추.xlsx`)과 맞췄다.

@@ -1,20 +1,31 @@
-"""Supply-gated model (2026-10-12 메인 편입, experiments/case06 → case10).
+"""Supply-gated model (2026-10-12 메인 편입, experiments/case06 → case10) + 겨울 분기·잔차 β 층 (2026-10-12 2차 편입, case15·case16).
 
-최종 예측 = 공급 게이트가 "조용함"이면 평시 모형, 아니면 대표 모형.
+최종 예측(final) = 세 단계.
 
-  대표 모형   an_sparse_all   (anomaly_model.py: 평년치 기준점 + 현재 가격 편차 지속 + 고랭지 기상 편차, 희소 ridge)
-  평시 모형   wx_hgb_summer   (backtest.py: 기상 HGB 여름특화) — case10에서 선택(사용자 결정 2026-10-12)
-  게이트 S1   KREI 농업관측 월보 여름배추(당해년산) 생산량 전망 전년비 — 원점까지 발행된 최신호 값.
-              여름 원점(6~9월)에서 S1 > 0 (공급이 전년보다 늘 것이라는 전망) 이면 calm → 평시 모형,
-              S1 ≤ 0 이거나 신호가 없으면(비여름·2021 이전) 대표 모형.
-              호별 값은 data/ext/krei_summer_issues.csv (2021~, 발행일은 호 월 5일로 보수적 가정; 8월호 실제 게시 8/1~8/5).
-              생산 전년비가 없는 호(4~5월호)는 면적 전년비로 대체.
+  1) 게이트(gate_hgb): 공급 게이트가 "조용함"이면 평시 모형, 아니면 대표 모형.
+       대표 모형   an_sparse_all   (anomaly_model.py: 평년치 기준점 + 현재 가격 편차 지속 + 고랭지 기상 편차, 희소 ridge)
+       평시 모형   wx_hgb_summer   (backtest.py: 기상 HGB 여름특화) — case10에서 선택(사용자 결정 2026-10-12)
+       게이트 S1   KREI 농업관측 월보 여름배추(당해년산) 생산량 전망 전년비 — 원점까지 발행된 최신호 값.
+                   여름 원점(6~9월)에서 S1 > 0 (공급이 전년보다 늘 것이라는 전망) 이면 calm → 평시 모형,
+                   S1 ≤ 0 이거나 신호가 없으면(비여름·2021 이전) 대표 모형.
+                   호별 값은 data/ext/krei_summer_issues.csv (2021~, 발행일은 호 월 5일로 보수적 가정; 8월호 실제 게시 8/1~8/5).
+                   생산 전년비가 없는 호(4~5월호)는 면적 전년비로 대체.
+  2) 겨울 분기(case15): 대상월(원점+15일의 달)이 1~4월이면 게이트 대신 **겨울 작형 학습 가격만 ridge**(winter_ridge).
+       학습 행 = 대상월이 1~4월인 과거 행만(누수 차단 동일: 타깃 창 종료 ≤ 원점), 피처 = backtest.PRICE_FEATS, alpha 3.
+       2016~2020 설계 창 9.5%·2021~2025 검증 창 10.4%로 두 창 모두 겨울 1~2위(현행 겨울 11.9%). 학습 행 < 120이면 게이트로 대체.
+  3) 잔차 β 층(case16 사전 설계판): 게이트 예측 × (1 + β × S/100), |S| ≤ 20 절단.
+       여름 경보 원점(게이트가 대표 모형을 쓴 여름 원점)  β −0.566, S = 여름배추 생산 전망 전년비(S ≤ 0 일 때만)
+       대상월 11~12월(가을)                              β −0.216, S = 가을배추(당해년산) 생산 전망 전년비(없으면 면적), data/ext/krei_nonsummer_issues.csv
+       β는 2016~2020 원점의 log(실제/게이트 예측) ~ β·S 회귀(절편 없음, 양수면 0)로 정한 값(겨울 −0.13은 겨울 분기와 겹쳐 제외, 봄 0).
+       S의 가용 시점은 규약 B(m월호 내용은 (m−1)월 말일부터 가용 — 사용자 사실, CLAUDE.md). 게이트 상태 판정은 종전대로 호 월 5일(결과 동일).
 
-규칙·임계(0)는 case06에서 2024·2025를 본 뒤 정한 사후 설계이며 신호는 6개 해(급등 2회)뿐이다. 평시 모형 선택은 case10(2016~2020 설계
-구간에서는 가격만 ridge가 더 나았고, 2021~ 검증 구간에서 HGB가 나음). 서술 상한은 README "성공 기준 점검" 참조.
+게이트 규칙·임계(0)는 case06에서 2024·2025를 본 뒤 정한 사후 설계이며 신호는 6개 해(급등 2회)뿐이다. 평시 모형 선택은 case10(2016~2020 설계
+구간에서는 가격만 ridge가 더 나았고, 2021~ 검증 구간에서 HGB가 나음). 겨울 분기와 β는 각각 2016~2020에서 정했으나 둘을 함께 얹기로 한 결정은
+2021~2025 결과를 본 뒤다(대상 달이 겹치지 않아 조합에서 새로 고른 값은 없음). 서술 상한은 README "성공 기준 점검" 참조.
 
-Usage: python src/gate_model.py [M|W]   (outputs/backtest_predictions{tag}.csv, anomaly_predictions{tag}.csv 가 먼저 있어야 함)
-Outputs: outputs/gate_predictions{tag}.csv  (origin, actual, summer, krei_issue, S1, gate_calm, 대표·평시·gate_hgb, 참고 gate_ridge)
+Usage: python src/gate_model.py [M|W]   (outputs/backtest_predictions{tag}.csv, anomaly_predictions{tag}.csv, data/processed/daily_features.csv 가 먼저 있어야 함)
+Outputs: outputs/gate_predictions{tag}.csv  (origin, actual, summer, krei_issue, S1, gate_calm, 대표·평시·gate_hgb, 참고 gate_ridge,
+                                            tmonth, winter_ridge, adj_issue, S_adj, adj_pct, gate_wr(겨울 분기만), gate_beta(β 층만), final)
          outputs/gate_metrics{tag}.csv
 """
 from __future__ import annotations
@@ -24,18 +35,35 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from sklearn.linear_model import Ridge
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "outputs"
 KREI_ISSUES = ROOT / "data" / "ext" / "krei_summer_issues.csv"
+SEASON_ISSUES = ROOT / "data" / "ext" / "krei_nonsummer_issues.csv"
 HEAD, CALM, CALM_REF = "an_sparse_all", "wx_hgb_summer", "price_only_ridge"
+FINAL = "final"
 PUB_DAY = 5
+WINTER_MONTHS, FALL_MONTHS = (1, 2, 3, 4), (11, 12)
+BETA_SUMMER_ALERT, BETA_FALL = -0.566, -0.216   # case16 prereg_beta.py (2016~2020 잔차 회귀). 바꾸려면 그 케이스에서 다시 추정
+S_CAP = 20.0
+MIN_TRAIN_WINTER = 120
 
 
 def load_issues() -> pd.DataFrame:
     d = pd.read_csv(KREI_ISSUES, encoding="utf-8-sig")
     d["pub_date"] = pd.to_datetime(dict(year=d.year, month=d.issue_month, day=PUB_DAY))
+    d["avail_b"] = pd.to_datetime(dict(year=d.year, month=d.issue_month, day=1)) - pd.Timedelta(days=1)   # 규약 B
     return d.sort_values("pub_date").reset_index(drop=True)
+
+
+def load_fall_issues() -> pd.DataFrame:
+    d = pd.read_csv(SEASON_ISSUES, encoding="utf-8-sig")
+    d = d[(d.season == "가을") & (d.prod_yoy.notna() | d.area_yoy.notna())].copy()
+    d["avail_b"] = pd.to_datetime(dict(year=d.year, month=d.issue_month, day=1)) - pd.Timedelta(days=1)   # 규약 B
+    return d.sort_values(["year", "issue_month"]).reset_index(drop=True)
 
 
 def latest_signal(issues: pd.DataFrame, origin: pd.Timestamp) -> tuple[str | float, float]:
@@ -48,6 +76,43 @@ def latest_signal(issues: pd.DataFrame, origin: pd.Timestamp) -> tuple[str | flo
     return f"{int(r.year)}-{int(r.issue_month):02d}", float(s1)
 
 
+def adjust_signal(issues: pd.DataFrame, origin: pd.Timestamp, year: int, crop_col: str | None = None) -> tuple[str | float, float]:
+    """규약 B로 원점에서 알 수 있는 최신호의 생산 전망 전년비(없으면 면적). 여름은 원점 연도 호, 가을은 대상 연도 작형 호."""
+    s = issues[(issues[crop_col] == year) if crop_col else (issues.year == year)]
+    s = s[s.avail_b <= origin]
+    if s.empty:
+        return np.nan, np.nan
+    r = s.iloc[-1]
+    v = r.prod_yoy if pd.notna(r.prod_yoy) else r.area_yoy
+    return f"{int(r.year)}-{int(r.issue_month):02d}", float(v)
+
+
+def winter_price_ridge(origins: pd.DatetimeIndex) -> pd.DataFrame:
+    """겨울 작형(대상월 1~4월) 학습 행만으로 적합한 가격만 ridge 예측. case15 season_trained 의 s_price_ridge 와 같은 학습 풀·사양."""
+    import anomaly_model as am
+    import backtest as bt
+
+    df = pd.read_csv(bt.PROC / "daily_features.csv", parse_dates=["date"]).set_index("date")
+    df[bt.TARGET] = df["y_lp_fwd28"] - df[bt.BASE]
+    df = am.add_normals(df)
+    feats_all = bt.PRICE_FEATS + bt.SUPPLY_FEATS + bt.WX_FEATS
+    pool = df[(df.is_trading == 1) & df[bt.TARGET].notna()].dropna(subset=feats_all + am.CORE + ["y_anom"]).iloc[::3]
+    pool = pool[(pool.index + pd.Timedelta(days=15)).month.isin(WINTER_MONTHS)]
+    rows = []
+    for o in origins:
+        if o not in df.index:
+            continue
+        te = df.loc[[o]]
+        if te[bt.PRICE_FEATS].isna().any(axis=1).iloc[0]:
+            continue
+        tr = pool[pool.index + pd.Timedelta(days=28) <= o]      # 누수 차단: 학습 행의 타깃 창 종료 ≤ 원점
+        if len(tr) < MIN_TRAIN_WINTER:
+            continue
+        m = make_pipeline(StandardScaler(), Ridge(alpha=3.0)).fit(tr[bt.PRICE_FEATS], tr[bt.TARGET])
+        rows.append({"origin": o, "winter_ridge": float(np.exp(float(te[bt.BASE].iloc[0]) + m.predict(te[bt.PRICE_FEATS])[0]))})
+    return pd.DataFrame(rows, columns=["origin", "winter_ridge"])
+
+
 def run(freq: str = "M") -> pd.DataFrame:
     tag = "" if freq == "M" else f"_{freq}"
     b = pd.read_csv(OUT / f"backtest_predictions{tag}.csv", parse_dates=["origin"])
@@ -58,15 +123,49 @@ def run(freq: str = "M") -> pd.DataFrame:
     d["krei_issue"] = [k for k, _ in sig]
     d["S1"] = [v for _, v in sig]
     d["gate_calm"] = (d.S1.notna() & (d.S1 > 0)).astype(int)
-    d["gate_hgb"] = np.where(d.gate_calm == 1, d[CALM], d[HEAD])        # 최종 모형
+    d["gate_hgb"] = np.where(d.gate_calm == 1, d[CALM], d[HEAD])        # 1단계 게이트 (2026-10-12 1차 편입의 최종 모형)
     d["gate_ridge"] = np.where(d.gate_calm == 1, d[CALM_REF], d[HEAD])  # 참고: 평시 = 가격만 ridge (case06 G_K)
+
+    # 2) 겨울 분기
+    target = d.origin + pd.Timedelta(days=15)
+    d["tmonth"] = target.dt.month
+    winter = d.tmonth.isin(WINTER_MONTHS)
+    d = d.merge(winter_price_ridge(pd.DatetimeIndex(d.origin[winter])), on="origin", how="left")
+    use_wr = winter & d.winter_ridge.notna()
+
+    # 3) 잔차 β 층
+    fall = load_fall_issues()
+    alert = (d.summer == 1) & (d.gate_calm == 0) & d.S1.notna()
+    adj_issue, s_adj, factor = [], [], []
+    for o, ty, tm, al in zip(d.origin, target.dt.year, d.tmonth, alert):
+        k, s, beta = np.nan, np.nan, 0.0
+        if al:
+            k, s = adjust_signal(issues, o, o.year)
+            beta = BETA_SUMMER_ALERT if (pd.notna(s) and s <= 0) else 0.0
+        elif tm in FALL_MONTHS:
+            k, s = adjust_signal(fall, o, ty, "crop_year")
+            beta = BETA_FALL
+        f = 1.0 if (pd.isna(s) or beta == 0.0) else 1.0 + beta * float(np.clip(s, -S_CAP, S_CAP)) / 100.0
+        adj_issue.append(k if f != 1.0 else np.nan)
+        s_adj.append(s if f != 1.0 else np.nan)
+        factor.append(f)
+    d["adj_issue"], d["S_adj"] = adj_issue, s_adj
+    d["adj_pct"] = (np.array(factor) - 1.0) * 100
+    d["gate_wr"] = np.where(use_wr, d.winter_ridge, d.gate_hgb)                      # 겨울 분기만
+    d["gate_beta"] = d.gate_hgb * np.array(factor)                                  # β 층만
+    d[FINAL] = np.where(use_wr, d.winter_ridge, d.gate_beta)                         # 최종 모형 (2026-10-12 2차 편입)
     return d
 
 
 def metrics(d: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
     y = d.origin.dt.year
     masks = {"all_2021_2025": y.between(2021, 2025), "summer_origin_2021_2025": y.between(2021, 2025) & (d.summer == 1),
-             "summer_origin_2021_2026": y.between(2021, 2026) & (d.summer == 1), "calm_origins_2021_2026": y.between(2021, 2026) & (d.gate_calm == 1)}
+             "summer_origin_2021_2026": y.between(2021, 2026) & (d.summer == 1), "calm_origins_2021_2026": y.between(2021, 2026) & (d.gate_calm == 1),
+             "all_2021_2026": y.between(2021, 2026), "all_2016_2020": y.between(2016, 2020),
+             "winter_target_2021_2025": y.between(2021, 2025) & d.tmonth.isin(WINTER_MONTHS),
+             "spring_target_2021_2025": y.between(2021, 2025) & d.tmonth.isin((5, 6)),
+             "summer_target_2021_2025": y.between(2021, 2025) & d.tmonth.isin((7, 8, 9, 10)),
+             "fall_target_2021_2025": y.between(2021, 2025) & d.tmonth.isin(FALL_MONTHS)}
     out = []
     for name, mk in masks.items():
         s = d[mk]
@@ -80,13 +179,13 @@ if __name__ == "__main__":
     freq = sys.argv[1] if len(sys.argv) > 1 else "M"
     tag = "" if freq == "M" else f"_{freq}"
     d = run(freq)
-    cols = [CALM_REF, "chronos2", CALM, HEAD, "gate_ridge", "gate_hgb"]
+    cols = [CALM_REF, "chronos2", CALM, HEAD, "gate_ridge", "gate_hgb", "gate_wr", "gate_beta", FINAL]
     d.to_csv(OUT / f"gate_predictions{tag}.csv", index=False, float_format="%.1f", encoding="utf-8-sig")
     met = metrics(d, cols)
     met.to_csv(OUT / f"gate_metrics{tag}.csv", index=False, float_format="%.2f")
-    pd.set_option("display.width", 250)
-    print(f"[{freq}] 원점 {len(d)}개, calm 원점 {int(d.gate_calm.sum())}개")
-    print(met.pivot(index="model", columns="subset", values="MAPE%").loc[cols].round(2).to_string())
+    pd.set_option("display.width", 320)
+    print(f"[{freq}] 원점 {len(d)}개, calm 원점 {int(d.gate_calm.sum())}개, 겨울 분기 {int(d.winter_ridge.notna().sum())}개, β 조정 {int((d.adj_pct.abs() > 1e-9).sum())}개")
+    print(met.pivot(index="model", columns="subset", values="MAPE%").loc[cols].round(2).T.to_string())
     if freq == "M":
         keys = pd.to_datetime([f"{y}-0{m}-{dd}" for y in range(2020, 2027) for m, dd in ((7, "31"), (8, "31"), (9, "30"))])
     else:
@@ -94,4 +193,4 @@ if __name__ == "__main__":
     sc = d[d.origin.isin(keys)].copy()
     for c in cols:
         sc[c + "%"] = ((sc[c] / sc.actual - 1) * 100).round(0)
-    print(sc[["origin", "actual", "krei_issue", "S1", "gate_calm"] + [c + "%" for c in cols]].to_string(index=False))
+    print(sc[["origin", "actual", "krei_issue", "S1", "gate_calm", "adj_issue", "adj_pct"] + [c + "%" for c in cols]].to_string(index=False))
