@@ -29,14 +29,16 @@ SERIES = [
     ("chronos2", "Chronos-2 제로샷", "#2ca02c", 1.5, ":"),
     ("mstl_ets", "MSTL+ETS", "#8c564b", 1.5, ":"),
     ("wx_ridge", "기상 ridge", "#1f77b4", 1.8, "-"),
-    ("an_sparse_all", "계절편차 희소 ridge(사전선택)", "#d6604d", 1.8, "-"),   # 2026-10-09 대표 사양으로 교체(이전 an_ridge_all)
+    ("an_sparse_all", "계절편차 희소 ridge(사전선택, 대표)", "#d6604d", 1.8, "-"),   # 2026-10-09 대표 사양으로 교체(이전 an_ridge_all)
+    ("gate_hgb", "최종 게이트(대표+KREI 전망 게이트+HGB)", "#e6ab02", 2.4, "--"),   # 2026-10-12 편입. 2024 여름은 S1<0이라 대표와 겹침
 ]
 
 
 def main() -> None:
     b = pd.read_csv(OUT / "backtest_predictions_W.csv", parse_dates=["origin"])
     a = pd.read_csv(OUT / "anomaly_predictions_W.csv", parse_dates=["origin"])
-    df = b.merge(a[["origin", "an_sparse_all"]], on="origin")
+    g = pd.read_csv(OUT / "gate_predictions_W.csv", parse_dates=["origin"])
+    df = b.merge(a[["origin", "an_sparse_all"]], on="origin").merge(g[["origin", "gate_hgb"]], on="origin")
     df = df[(df.origin >= "2024-06-01") & (df.origin <= "2024-11-10")]
 
     fig, ax = plt.subplots(figsize=(10, 5.2), dpi=150)
