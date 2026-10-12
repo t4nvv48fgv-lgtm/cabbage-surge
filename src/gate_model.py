@@ -19,13 +19,20 @@
        β는 2016~2020 원점의 log(실제/게이트 예측) ~ β·S 회귀(절편 없음, 양수면 0)로 정한 값(겨울 −0.13은 겨울 분기와 겹쳐 제외, 봄 0).
        S의 가용 시점은 규약 B(m월호 내용은 (m−1)월 말일부터 가용 — 사용자 사실, CLAUDE.md). 게이트 상태 판정은 종전대로 호 월 5일(결과 동일).
 
+  4) 9월 고온 층(case17, 2026-10-12 3차 편입, 사용자 "월말 9월 원점 한정으로"): **월말 9월 원점의 10월 예측에만**
+       final = min(final_base × exp(γ·H), max(final_base, 최근 7일 가격)),  H = 가을배추 주산지 9곳의 9월 30°C 이상 일수(L_hot30_sum30).
+       가을배추 생산 전망 전년비 > 0 이면 끈다. γ 는 상수가 아니라 그 해 이전 해들의 9월 말 원점 잔차로 매해 다시 추정(확장 창).
+       백테스트에서 실제로 바뀌는 달은 2024-10 하나(−34→0%)이고, 그 γ(0.028)는 사실상 2023 한 해에서 배운 값이다. 주간 원점에는 적용하지 않는다.
+       final_base = 3단계까지의 값(2차 편입의 최종).
+
 게이트 규칙·임계(0)는 case06에서 2024·2025를 본 뒤 정한 사후 설계이며 신호는 6개 해(급등 2회)뿐이다. 평시 모형 선택은 case10(2016~2020 설계
 구간에서는 가격만 ridge가 더 나았고, 2021~ 검증 구간에서 HGB가 나음). 겨울 분기와 β는 각각 2016~2020에서 정했으나 둘을 함께 얹기로 한 결정은
 2021~2025 결과를 본 뒤다(대상 달이 겹치지 않아 조합에서 새로 고른 값은 없음). 서술 상한은 README "성공 기준 점검" 참조.
 
 Usage: python src/gate_model.py [M|W]   (outputs/backtest_predictions{tag}.csv, anomaly_predictions{tag}.csv, data/processed/daily_features.csv 가 먼저 있어야 함)
 Outputs: outputs/gate_predictions{tag}.csv  (origin, actual, summer, krei_issue, S1, gate_calm, 대표·평시·gate_hgb, 참고 gate_ridge,
-                                            tmonth, winter_ridge, adj_issue, S_adj, adj_pct, gate_wr(겨울 분기만), gate_beta(β 층만), final)
+                                            tmonth, winter_ridge, adj_issue, S_adj, adj_pct, gate_wr(겨울 분기만), gate_beta(β 층만),
+                                            final_base(3단계까지), heat_H, heat_F, heat_gamma_pct, heat_pct, final)
          outputs/gate_metrics{tag}.csv
 """
 from __future__ import annotations
@@ -50,6 +57,7 @@ WINTER_MONTHS, FALL_MONTHS = (1, 2, 3, 4), (11, 12)
 BETA_SUMMER_ALERT, BETA_FALL = -0.566, -0.216   # case16 prereg_beta.py (2016~2020 잔차 회귀). 바꾸려면 그 케이스에서 다시 추정
 S_CAP = 20.0
 MIN_TRAIN_WINTER = 120
+HEAT_ORIGIN_MONTH, HEAT_TARGET_MONTH = 9, 10   # 9월 고온 층: 월말 9월 원점 → 10월 대상에만 (case17)
 
 
 def load_issues() -> pd.DataFrame:
@@ -153,7 +161,48 @@ def run(freq: str = "M") -> pd.DataFrame:
     d["adj_pct"] = (np.array(factor) - 1.0) * 100
     d["gate_wr"] = np.where(use_wr, d.winter_ridge, d.gate_hgb)                      # 겨울 분기만
     d["gate_beta"] = d.gate_hgb * np.array(factor)                                  # β 층만
-    d[FINAL] = np.where(use_wr, d.winter_ridge, d.gate_beta)                         # 최종 모형 (2026-10-12 2차 편입)
+    d["final_base"] = np.where(use_wr, d.winter_ridge, d.gate_beta)                  # 2차 편입까지(게이트 + 겨울 분기 + 잔차 β)
+
+    # 4) 9월 고온 층 (case17, 월말 9월 원점 한정)
+    d = heat_hold(d, fall, monthly=(freq == "M"))
+    return d
+
+
+def heat_hold(d: pd.DataFrame, fall: pd.DataFrame, monthly: bool) -> pd.DataFrame:
+    """9월 말 원점의 10월 예측에만: final = min(final_base × exp(γ·H), max(final_base, 최근 7일 가격)).
+
+    H = 원점 직전 30일의 가을배추 주산지 30°C 이상 일수(daily_features.L_hot30_sum30; 9/30 원점에서는 9월 한 달).
+    게이트: 가을배추 생산 전망 전년비 F > 0 이면 조정하지 않는다(F 없으면 연다).
+    γ 는 고정 상수가 아니라 **그 해 이전 해들의 9월 말 원점 잔차만으로 매해 다시 추정**한다(확장 창):
+      γ_y = max(0, Σ H·log(실제/final_base) / Σ H²),  게이트가 열린 과거 원점만. 과거 해가 없거나 음수면 0.
+    주간 원점에는 적용하지 않는다(10월 원점에서 조정이 반대로 작용, case17).
+    """
+    import backtest as bt
+
+    d["heat_H"], d["heat_F"], d["heat_gamma_pct"], d["heat_pct"] = np.nan, np.nan, np.nan, 0.0
+    d[FINAL] = d.final_base
+    if not monthly:
+        return d
+    rows = d.index[(d.origin.dt.month == HEAT_ORIGIN_MONTH) & (d.tmonth == HEAT_TARGET_MONTH)]
+    if len(rows) == 0:
+        return d
+    df = pd.read_csv(bt.PROC / "daily_features.csv", parse_dates=["date"], usecols=["date", "L_hot30_sum30", "lp7"]).set_index("date")
+    k = d.loc[rows, ["origin", "actual", "final_base"]].copy()
+    k["H"] = df.L_hot30_sum30.reindex(k.origin).values
+    k["p7"] = np.exp(df.lp7.reindex(k.origin).values)
+    k["F"] = [adjust_signal(fall, o, o.year, "crop_year")[1] for o in k.origin]
+    k["open"] = ~(k.F > 0) & k.H.notna()
+    k["r"] = np.log(k.actual / k.final_base)
+    k["year"] = k.origin.dt.year
+    for i, r in k.iterrows():
+        past = k[(k.year < r.year) & k.open & k.r.notna()]
+        den = float((past.H ** 2).sum())
+        gam = max(0.0, float((past.H * past.r).sum() / den)) if den > 0 else 0.0
+        new = r.final_base
+        if r.open and gam > 0:
+            new = min(r.final_base * float(np.exp(gam * r.H)), max(r.final_base, r.p7))
+        d.loc[i, ["heat_H", "heat_F", "heat_gamma_pct", "heat_pct"]] = [r.H, r.F, gam * 100, (new / r.final_base - 1.0) * 100]
+        d.loc[i, FINAL] = new                                                       # 최종 모형 (2026-10-12 3차 편입)
     return d
 
 
@@ -179,7 +228,7 @@ if __name__ == "__main__":
     freq = sys.argv[1] if len(sys.argv) > 1 else "M"
     tag = "" if freq == "M" else f"_{freq}"
     d = run(freq)
-    cols = [CALM_REF, "chronos2", CALM, HEAD, "gate_ridge", "gate_hgb", "gate_wr", "gate_beta", FINAL]
+    cols = [CALM_REF, "chronos2", CALM, HEAD, "gate_ridge", "gate_hgb", "gate_wr", "gate_beta", "final_base", FINAL]
     d.to_csv(OUT / f"gate_predictions{tag}.csv", index=False, float_format="%.1f", encoding="utf-8-sig")
     met = metrics(d, cols)
     met.to_csv(OUT / f"gate_metrics{tag}.csv", index=False, float_format="%.2f")
