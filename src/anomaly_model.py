@@ -41,8 +41,36 @@ SPARSE = [
     "H_h_rain_anom_mean30", "H_heavy50_sum60",
     "qyoy28",
 ]
+# 2026-10-13(case27 승격, 사용자 결정 "고랭지 기상은 출하기에만 쓰는 걸로"): 고랭지 기상 4개는 여름 작형이 출하되는 때에만 켠다.
+#   켜지는 정도 w(d) = 앞으로 28일(d+1~d+28) 가운데 여름 작형의 수확 기간에 드는 날의 비율(세부 작형별로 구해 가장 큰 값).
+#   수확 기간은 사용자 업무 파일(작형별 정식·출하 시기 2026ver)의 선을 순 단위로 읽은 것: 준고랭지 1기작 6/11~7/20, 고랭지 7/11~9/30, 준고랭지 2기작 9/21~10/31.
+#   그 밖의 날(w = 0)에는 고랭지 기상 재료가 0 → 봄·가을·겨울 가격을 예측할 때 평창·태백 날씨를 보지 않는다.
+SUMMER_HARVEST = [((6, 11), (7, 20)), ((7, 11), (9, 30)), ((9, 21), (10, 31))]
+HL_WX = ["H_h_tmax_anom_mean30", "H_hot30_sum60", "H_h_rain_anom_mean30", "H_heavy50_sum60"]
+SPARSE_SHIP = ["cur_anom7", "dlp7"] + [c + "_ship" for c in HL_WX] + ["qyoy28"]
 # 2026-10-08: gov30(정부 방출 30일 합) 제외 — stock.csv 방출은 2022~만 있어 학습구간이 0으로 채워지고,
 # 2022-08 첫 등장 때 외삽 사고(an_ridge_all 2022-09 −52% → 제외 시 −12%, MAPE 16.3→15.6%). 상세는 backtest.py 주석·README.
+
+
+def summer_ship_weight(idx: pd.DatetimeIndex, horizon: int = 28) -> pd.Series:
+    """앞으로 horizon 일 가운데 여름 작형(준고랭지 1·2기작, 고랭지) 수확 기간에 드는 날의 비율. 세부 작형 중 최댓값(0~1)."""
+    d = idx.values.astype("datetime64[D]")
+    best = np.zeros(len(idx))
+    for y in range(idx.year.min(), idx.year.max() + 2):
+        for (m0, d0), (m1, d1) in SUMMER_HARVEST:
+            lo = np.maximum(d + np.timedelta64(1, "D"), np.datetime64(pd.Timestamp(y, m0, d0), "D"))
+            hi = np.minimum(d + np.timedelta64(horizon, "D"), np.datetime64(pd.Timestamp(y, m1, d1), "D"))
+            best = np.maximum(best, np.clip((hi - lo) / np.timedelta64(1, "D") + 1, 0, horizon) / horizon)
+    return pd.Series(best, index=idx)
+
+
+def add_ship_weather(df: pd.DataFrame) -> pd.DataFrame:
+    """고랭지 기상 4개 × 여름 작형 출하기 가중(SPARSE_SHIP 용 열)."""
+    w = summer_ship_weight(df.index)
+    df["w_summer_ship"] = w
+    for c in HL_WX:
+        df[c + "_ship"] = df[c] * w
+    return df
 
 
 def add_normals(df: pd.DataFrame) -> pd.DataFrame:
@@ -60,7 +88,7 @@ def add_normals(df: pd.DataFrame) -> pd.DataFrame:
 
 def run(freq: str = "M") -> pd.DataFrame:
     df = pd.read_csv(PROC / "daily_features.csv", parse_dates=["date"]).set_index("date")
-    df = add_normals(df)
+    df = add_ship_weather(add_normals(df))
     pool = df[(df.is_trading == 1) & df.y_anom.notna()].dropna(subset=CORE).iloc[::3]
 
     if freq == "M":
@@ -73,6 +101,8 @@ def run(freq: str = "M") -> pd.DataFrame:
         # 대표 사양(2026-10-09, 사용자 결정): experiments/case03 에서 2016~2023 원점만으로 고른 사양(SPARSE·전체 학습·alpha 10).
         # 사전 선택이라 R-1(사후 설계) 방어가 서고, 학습 풀 정의·추출 시작점·alpha 1~30 에 결론이 안정(2024-09 −9.5~−12.4%, 2025-08 +20~+22%).
         "an_sparse_all":   (SPARSE, False, lambda: make_pipeline(StandardScaler(), Ridge(alpha=10.0))),
+        # 2026-10-13 case27 승격: 같은 사양에서 고랭지 기상만 여름 작형 출하기에 켠 것. gate_model 이 여름 원점 밖의 대표 모형으로 쓴다.
+        "an_sparse_ship":  (SPARSE_SHIP, False, lambda: make_pipeline(StandardScaler(), Ridge(alpha=10.0))),
         "an_ridge_all":    (CORE,   False, lambda: make_pipeline(StandardScaler(), Ridge(alpha=1.0))),
         "an_ridge_summer": (CORE,   True,  lambda: make_pipeline(StandardScaler(), Ridge(alpha=1.0))),
         "an_sparse_summer": (SPARSE, True, lambda: make_pipeline(StandardScaler(), Ridge(alpha=0.3))),

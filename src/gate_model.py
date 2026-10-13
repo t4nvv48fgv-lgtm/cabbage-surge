@@ -25,6 +25,11 @@
        백테스트에서 실제로 바뀌는 달은 2024-10 하나(−34→0%)이고, 그 γ(0.028)는 사실상 2023 한 해에서 배운 값이다. 주간 원점에는 적용하지 않는다.
        final_base = 3단계까지의 값(2차 편입의 최종).
 
+  0) 대표 모형의 계절 구분(case27, 2026-10-13 4차 편입, 사용자 "고랭지 기상은 출하기에만 쓰는 걸로 메인에 넣어줘"):
+       여름 원점(6~9월)은 종전 대표 an_sparse_all, **그 밖의 원점은 an_sparse_ship**(같은 사양, 고랭지 기상 4개를 여름 작형 출하기에만 켬).
+       여름 원점에서는 고랭지가 출하기라 두 사양의 기상 재료가 사실상 같으므로 종전 값을 그대로 둔다(게이트·경보 조정·9월 고온 층·성공 기준 달 불변).
+       열 head = 원점별로 실제 쓰인 대표 모형 값. 월말 2021~2025 MAPE 11.62 → 11.38, 2016~2020 18.54 → 17.37, 주간 15.10 → 15.09(30% 초과 23 → 26).
+
 게이트 규칙·임계(0)는 case06에서 2024·2025를 본 뒤 정한 사후 설계이며 신호는 6개 해(급등 2회)뿐이다. 평시 모형 선택은 case10(2016~2020 설계
 구간에서는 가격만 ridge가 더 나았고, 2021~ 검증 구간에서 HGB가 나음). 겨울 분기와 β는 각각 2016~2020에서 정했으나 둘을 함께 얹기로 한 결정은
 2021~2025 결과를 본 뒤다(대상 달이 겹치지 않아 조합에서 새로 고른 값은 없음). 서술 상한은 README "성공 기준 점검" 참조.
@@ -51,6 +56,7 @@ OUT = ROOT / "outputs"
 KREI_ISSUES = ROOT / "data" / "ext" / "krei_summer_issues.csv"
 SEASON_ISSUES = ROOT / "data" / "ext" / "krei_nonsummer_issues.csv"
 HEAD, CALM, CALM_REF = "an_sparse_all", "wx_hgb_summer", "price_only_ridge"
+HEAD_OFF = "an_sparse_ship"      # 여름 원점 밖의 대표 모형: 고랭지 기상을 여름 작형 출하기에만 (case27, 2026-10-13)
 FINAL = "final"
 PUB_DAY = 5
 WINTER_MONTHS, FALL_MONTHS = (1, 2, 3, 4), (11, 12)
@@ -125,14 +131,15 @@ def run(freq: str = "M") -> pd.DataFrame:
     tag = "" if freq == "M" else f"_{freq}"
     b = pd.read_csv(OUT / f"backtest_predictions{tag}.csv", parse_dates=["origin"])
     a = pd.read_csv(OUT / f"anomaly_predictions{tag}.csv", parse_dates=["origin"])
-    d = b[["origin", "actual", "summer", CALM_REF, CALM, "chronos2"]].merge(a[["origin", "normal_fwd", HEAD]], on="origin")
+    d = b[["origin", "actual", "summer", CALM_REF, CALM, "chronos2"]].merge(a[["origin", "normal_fwd", HEAD, HEAD_OFF]], on="origin")
+    d["head"] = np.where(d.summer == 1, d[HEAD], d[HEAD_OFF])            # 0) 대표 모형: 여름 원점은 종전, 그 밖은 출하기 한정 기상
     issues = load_issues()
     sig = [latest_signal(issues, o) if s == 1 else (np.nan, np.nan) for o, s in zip(d.origin, d.summer)]
     d["krei_issue"] = [k for k, _ in sig]
     d["S1"] = [v for _, v in sig]
     d["gate_calm"] = (d.S1.notna() & (d.S1 > 0)).astype(int)
-    d["gate_hgb"] = np.where(d.gate_calm == 1, d[CALM], d[HEAD])        # 1단계 게이트 (2026-10-12 1차 편입의 최종 모형)
-    d["gate_ridge"] = np.where(d.gate_calm == 1, d[CALM_REF], d[HEAD])  # 참고: 평시 = 가격만 ridge (case06 G_K)
+    d["gate_hgb"] = np.where(d.gate_calm == 1, d[CALM], d["head"])      # 1단계 게이트 (2026-10-12 1차 편입의 최종 모형)
+    d["gate_ridge"] = np.where(d.gate_calm == 1, d[CALM_REF], d["head"])  # 참고: 평시 = 가격만 ridge (case06 G_K)
 
     # 2) 겨울 분기
     target = d.origin + pd.Timedelta(days=15)
@@ -228,7 +235,7 @@ if __name__ == "__main__":
     freq = sys.argv[1] if len(sys.argv) > 1 else "M"
     tag = "" if freq == "M" else f"_{freq}"
     d = run(freq)
-    cols = [CALM_REF, "chronos2", CALM, HEAD, "gate_ridge", "gate_hgb", "gate_wr", "gate_beta", "final_base", FINAL]
+    cols = [CALM_REF, "chronos2", CALM, HEAD, HEAD_OFF, "head", "gate_ridge", "gate_hgb", "gate_wr", "gate_beta", "final_base", FINAL]
     d.to_csv(OUT / f"gate_predictions{tag}.csv", index=False, float_format="%.1f", encoding="utf-8-sig")
     met = metrics(d, cols)
     met.to_csv(OUT / f"gate_metrics{tag}.csv", index=False, float_format="%.2f")
