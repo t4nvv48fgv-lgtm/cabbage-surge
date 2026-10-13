@@ -28,6 +28,7 @@ python src/anomaly_model.py W
 python src/gate_model.py M        # 최종 모형(2026-10-13): 대표(여름 원점 an_sparse_all, 그 밖 an_sparse_ship = 고랭지 기상을 출하기에만) + KREI 생산 전망 게이트 + 평시 wx_hgb_summer + 겨울 분기 + 잔차 β 층(열 final_base) + 9월 고온 층(열 final). backtest·anomaly 산출물·daily_features 필요
 python src/gate_model.py W
 python src/plot_2024.py
+python src/forecast_live.py 2026-09-30 M   # 실시간 전망: 실제값이 아직 없는 원점에서 최종 모형과 같은 규칙으로 앞으로 28일 평균을 예측(outputs/forecast_live.csv). 백테스트 원점에서는 gate_predictions 와 같은 값이 나온다
 python tools/make_report.py       # 쉬운 말 결과 보고서 PDF(docs/배추급등예측_결과보고서_YYYY-MM-DD.pdf). 수치는 outputs/*.csv에서 직접 읽음
 python tools/make_model_guide.py  # 최종 모형 설명서 PDF(docs/배추급등예측_모형설명서_YYYY-MM-DD.pdf)
 python tools/md_to_pdf.py docs/모형설명_2026-10-13.md   # 글로 쓴 모형 설명(부품·규칙·근거·한계 전부)을 PDF로. 마크다운이 원본
