@@ -26,8 +26,9 @@ PAST = {"1차 게이트": ("2741e43", "gate_hgb"), "2차": ("3569174", "final"),
 VERSIONS = ["가격만", "1차 게이트", "2차", "3차", "4차", "5차"]
 
 
-def past_column(commit: str, col: str) -> pd.Series:
-    raw = subprocess.run(["git", "-C", str(ROOT), "show", f"{commit}:outputs/gate_predictions.csv"], capture_output=True, check=True).stdout
+def past_column(commit: str, col: str, tag: str = "") -> pd.Series:
+    """그 커밋의 outputs/gate_predictions{tag}.csv 에서 열 하나(원점 색인). tag '' = 월말, '_W' = 주간."""
+    raw = subprocess.run(["git", "-C", str(ROOT), "show", f"{commit}:outputs/gate_predictions{tag}.csv"], capture_output=True, check=True).stdout
     d = pd.read_csv(io.BytesIO(raw), parse_dates=["origin"], encoding="utf-8-sig")
     return d.set_index("origin")[col]
 
