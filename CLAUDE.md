@@ -30,6 +30,7 @@ python src/gate_model.py W
 python src/plot_2024.py
 python tools/make_report.py       # 쉬운 말 결과 보고서 PDF(docs/배추급등예측_결과보고서_YYYY-MM-DD.pdf). 수치는 outputs/*.csv에서 직접 읽음
 python tools/make_model_guide.py  # 최종 모형 설명서 PDF(docs/배추급등예측_모형설명서_YYYY-MM-DD.pdf)
+python tools/md_to_pdf.py docs/모형설명_2026-10-13.md   # 글로 쓴 모형 설명(부품·규칙·근거·한계 전부)을 PDF로. 마크다운이 원본
 ```
 
 게이트 신호 원천 `data/ext/krei_summer_issues.csv`(KREI 월보 호별 여름배추 전망, 공개 수치). 매해 새 호가 나오면 줄을 추가하고 gate_model을 재실행한다.
