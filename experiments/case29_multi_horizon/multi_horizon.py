@@ -15,8 +15,8 @@
   월보 신호는 2021년부터. 그 전 해는 대표 모형 그대로. 수준 조정 계수는 구간 1에서 정한 값을 세 구간에 그대로 쓴다(가정).
 확인: 6월 말 원점 2016~2026 의 구간별 예측·실제·오차, 구간 1이 메인 값과 같은지, 비교 기준(평년치 그대로, 가격만, 최근 28일 그대로).
 
-Usage: python experiments/case29_multi_horizon/multi_horizon.py [06-30]
-Outputs: outputs/mh_predictions.csv, mh_metrics.csv
+Usage: python experiments/case29_multi_horizon/multi_horizon.py [06-30]     (원점의 월-일. 06-30·07-31·08-31 을 차례로 돌리면 원점을 옮겨 가며 본 결과가 된다)
+Outputs: outputs/mh_predictions_{월-일}.csv, mh_metrics_{월-일}.csv
 """
 from __future__ import annotations
 
@@ -64,6 +64,8 @@ def build() -> pd.DataFrame:
     price = price[price.price > 0].set_index("date")["price"]
     for h, (a, b) in HORIZONS.items():
         ml, mp = block_means(price, df.index, a, b)
+        if h == 1:                                   # 구간 1은 메인과 같은 타깃 열을 그대로 쓴다(소수 5자리로 저장된 값 → 나무 모형까지 같은 결과)
+            ml = df["y_lp_fwd28"]
         df[f"y{h}"], df[f"act{h}"] = ml, mp
         df[f"norm{h}"] = pd.concat([ml.shift(364 * k) for k in range(1, am.NORM_YEARS + 1)], axis=1).mean(axis=1)
         df[f"ya{h}"] = df[f"y{h}"] - df[f"norm{h}"]       # 평년 대비 편차
@@ -121,7 +123,7 @@ def main(md: str) -> None:
     models = ["final", "head", "calm_hgb", "price_only", "normal", "last28"]
     for c in models:
         d[c + "%"] = (d[c] / d.actual - 1) * 100
-    d.to_csv(OUT / "mh_predictions.csv", index=False, float_format="%.1f", encoding="utf-8-sig")
+    d.to_csv(OUT / f"mh_predictions_{md}.csv", index=False, float_format="%.1f", encoding="utf-8-sig")
     # 구간 1이 메인과 같은지
     g = pd.read_csv(ROOT / "outputs" / "gate_predictions.csv", parse_dates=["origin"], encoding="utf-8-sig")[["origin", "final", "actual"]]
     c = d[d.h == 1].merge(g, on="origin", suffixes=("", "_main"))
@@ -136,7 +138,7 @@ def main(md: str) -> None:
                 row[mname] = s[mname + "%"].abs().mean()
             rows.append(row)
     met = pd.DataFrame(rows)
-    met.to_csv(OUT / "mh_metrics.csv", index=False, float_format="%.2f", encoding="utf-8-sig")
+    met.to_csv(OUT / f"mh_metrics_{md}.csv", index=False, float_format="%.2f", encoding="utf-8-sig")
     print(f"\n[{md} 원점에서 본 구간별 평균 오차율(%)]")
     print(met.round(1).to_string(index=False))
     show = d.assign(해=yr, 구간=d.h, 기간=d.start.dt.strftime("%m/%d") + "~" + d.end.dt.strftime("%m/%d"))
