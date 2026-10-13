@@ -54,7 +54,7 @@ def run(freq: str) -> None:
     d = pd.read_csv(ROOT / "outputs" / f"gate_predictions{tag}.csv", parse_dates=["origin"], encoding="utf-8-sig")
     q = pd.read_csv(CASE_DIR / "krei_shipment_outlook_2021_2026.csv")
     q["krei_issue"] = q.year.astype(str) + "-" + q.issue_month.astype(str).str.zfill(2)
-    d = d.merge(q[["krei_issue", "q_sign"]], on="krei_issue", how="left")
+    d = d.drop(columns=["ship_q"], errors="ignore").merge(q[["krei_issue", "q_sign"]], on="krei_issue", how="left")
     fall = gm.load_fall_issues()
     monthly = freq == "M"
     S, Q = d.S1, d.q_sign
@@ -63,7 +63,10 @@ def run(freq: str) -> None:
             "하나라도": (S > 0) & ~(Q < 0),
             "출하 우선": np.where(Q > 0, True, np.where(Q < 0, False, S > 0)).astype(bool)}
     chk = assemble(d, pd.Series(calm["현행"], index=d.index), fall, monthly)
-    assert np.allclose(chk[gm.FINAL], d[gm.FINAL], atol=0.11), "현행 재현 실패"
+    # '현행' = 생산 전망만 보는 규칙. 2026-10-13 채택 뒤 메인의 final 은 '둘 다 감소'이므로 참고 열 final_prod_only 와 맞춘다
+    ref = d["final_prod_only"] if "final_prod_only" in d.columns else d[gm.FINAL]
+    assert np.allclose(chk[gm.FINAL], ref, atol=0.11), "현행 재현 실패"
+    assert "final_prod_only" not in d.columns or np.allclose(assemble(d, pd.Series(calm["둘 다 감소"], index=d.index), fall, monthly)[gm.FINAL], d[gm.FINAL], atol=0.11), "메인 재현 실패"
     res = {k: assemble(d, pd.Series(v, index=d.index), fall, monthly)[gm.FINAL].values for k, v in calm.items()}
     yr = d.origin.dt.year
     s = d[(d.summer == 1) & (yr >= 2021)].copy()

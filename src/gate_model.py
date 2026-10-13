@@ -9,6 +9,12 @@
                    (규약 B: m월호는 (m−1)월 말일부터 가용. 7월 말 원점은 8월호를 본다. 2026-10-13 수정, 종전은 호 월 5일 가정).
                    여름 원점(6~9월)에서 S1 > 0 (공급이 전년보다 늘 것이라는 전망) 이면 calm → 평시 모형,
                    S1 ≤ 0 이거나 신호가 없으면(비여름·2021 이전) 대표 모형.
+                   **2026-10-13 5차 편입(case30, 사용자 "case30 채택")**: S1 ≤ 0 이어도 같은 호가 그 달 배추 출하량을
+                   전년 대비 '증가'로 전망했으면(ship_q > 0) calm. 즉 경보 = 생산 전망 ≤ 0 이고 출하량 전망도 증가가 아님.
+                   출하량 전망은 경보를 끄는 쪽으로만 쓴다(감소 전망으로 경보를 켜지 않음). 방향 판독표는
+                   data/ext/krei_shipment_outlook.csv (2021~, 6~10월호. 새 호마다 한 줄 추가).
+                   월말은 2026-06-30·07-31 두 원점만 바뀐다(+11 → +3%, +19 → −2%). 2021~2025 월말은 불변, 주간 15.14 → 15.15.
+                   근거가 사실상 2026년 한 해이고 그 해 오차를 본 뒤 만든 규칙이다. 열 final_prod_only = 이 규칙 없이 계산한 최종값.
                    호별 값은 data/ext/krei_summer_issues.csv (2021~, 발행일은 호 월 5일로 보수적 가정; 8월호 실제 게시 8/1~8/5).
                    생산 전년비가 없는 호(4~5월호)는 면적 전년비로 대체.
   2) 겨울 분기(case15): 대상월(원점+15일의 달)이 1~4월이면 게이트 대신 **겨울 작형 학습 가격만 ridge**(winter_ridge).
@@ -36,9 +42,10 @@
 2021~2025 결과를 본 뒤다(대상 달이 겹치지 않아 조합에서 새로 고른 값은 없음). 서술 상한은 README "성공 기준 점검" 참조.
 
 Usage: python src/gate_model.py [M|W]   (outputs/backtest_predictions{tag}.csv, anomaly_predictions{tag}.csv, data/processed/daily_features.csv 가 먼저 있어야 함)
-Outputs: outputs/gate_predictions{tag}.csv  (origin, actual, summer, krei_issue, S1, gate_calm, 대표·평시·gate_hgb, 참고 gate_ridge,
+Outputs: outputs/gate_predictions{tag}.csv  (origin, actual, summer, krei_issue, S1, ship_q, gate_calm, 대표·평시·gate_hgb, 참고 gate_ridge,
                                             tmonth, winter_ridge, adj_issue, S_adj, adj_pct, gate_wr(겨울 분기만), gate_beta(β 층만),
-                                            final_base(3단계까지), heat_H, heat_F, heat_gamma_pct, heat_pct, final)
+                                            final_base(3단계까지), heat_H, heat_F, heat_gamma_pct, heat_pct, final,
+                                            참고 final_prod_only(게이트를 생산 전망만으로 판정한 최종값))
          outputs/gate_metrics{tag}.csv
 """
 from __future__ import annotations
@@ -56,9 +63,11 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "outputs"
 KREI_ISSUES = ROOT / "data" / "ext" / "krei_summer_issues.csv"
 SEASON_ISSUES = ROOT / "data" / "ext" / "krei_nonsummer_issues.csv"
+SHIP_ISSUES = ROOT / "data" / "ext" / "krei_shipment_outlook.csv"   # 호별 그 달 출하량 전망 방향 (case30, 2026-10-13)
 HEAD, CALM, CALM_REF = "an_sparse_all", "wx_hgb_summer", "price_only_ridge"
 HEAD_OFF = "an_sparse_ship"      # 여름 원점 밖의 대표 모형: 고랭지 기상을 여름 작형 출하기에만 (case27, 2026-10-13)
 FINAL = "final"
+FINAL_PROD_ONLY = "final_prod_only"   # 참고 열: 게이트를 생산 전망만으로 판정했을 때의 최종값
 PUB_DAY = 5
 WINTER_MONTHS, FALL_MONTHS = (1, 2, 3, 4), (11, 12)
 BETA_SUMMER_ALERT, BETA_FALL = -0.566, -0.216   # case16 prereg_beta.py (2016~2020 잔차 회귀). 바꾸려면 그 케이스에서 다시 추정
@@ -93,6 +102,12 @@ def latest_signal(issues: pd.DataFrame, origin: pd.Timestamp) -> tuple[str | flo
     r = s.iloc[-1]
     s1 = r.prod_yoy if pd.notna(r.prod_yoy) else r.area_yoy
     return f"{int(r.year)}-{int(r.issue_month):02d}", float(s1)
+
+
+def load_shipment() -> dict[str, float]:
+    """호(예: '2026-08') → 그 호가 전망한 그 달 배추 출하량의 전년 대비 방향(+1 증가, 0 비슷, −1 감소, 표현 없으면 nan)."""
+    q = pd.read_csv(SHIP_ISSUES, encoding="utf-8-sig")
+    return {f"{int(y)}-{int(m):02d}": float(s) for y, m, s in zip(q.year, q.issue_month, q.q_sign)}
 
 
 def adjust_signal(issues: pd.DataFrame, origin: pd.Timestamp, year: int, crop_col: str | None = None) -> tuple[str | float, float]:
@@ -142,19 +157,34 @@ def run(freq: str = "M") -> pd.DataFrame:
     sig = [latest_signal(issues, o) if s == 1 else (np.nan, np.nan) for o, s in zip(d.origin, d.summer)]
     d["krei_issue"] = [k for k, _ in sig]
     d["S1"] = [v for _, v in sig]
-    d["gate_calm"] = (d.S1.notna() & (d.S1 > 0)).astype(int)
-    d["gate_hgb"] = np.where(d.gate_calm == 1, d[CALM], d["head"])      # 1단계 게이트 (2026-10-12 1차 편입의 최종 모형)
-    d["gate_ridge"] = np.where(d.gate_calm == 1, d[CALM_REF], d["head"])  # 참고: 평시 = 가격만 ridge (case06 G_K)
+    d["ship_q"] = d.krei_issue.map(load_shipment())                      # 같은 호의 그 달 출하량 전망 방향 (case30)
+    calm_prod = d.S1.notna() & (d.S1 > 0)                                # 종전 규칙: 생산 전망만
+    calm = calm_prod | (d.S1.notna() & (d.ship_q > 0))                   # 생산 전망이 줄어도 출하량 전망이 증가면 평시
 
-    # 2) 겨울 분기
-    target = d.origin + pd.Timedelta(days=15)
-    d["tmonth"] = target.dt.month
+    # 2) 겨울 분기 (게이트와 무관)
+    d["tmonth"] = (d.origin + pd.Timedelta(days=15)).dt.month
     winter = d.tmonth.isin(WINTER_MONTHS)
     d = d.merge(winter_price_ridge(pd.DatetimeIndex(d.origin[winter])), on="origin", how="left")
-    use_wr = winter & d.winter_ridge.notna()
+
+    fall = load_fall_issues()
+    ref = assemble(d, calm_prod, issues, fall, monthly=(freq == "M"))[FINAL].values
+    d = assemble(d, calm, issues, fall, monthly=(freq == "M"))
+    d[FINAL_PROD_ONLY] = ref                                             # 참고: 게이트를 생산 전망만으로 판정한 최종값(case30 채택 전 규칙)
+    lead = ["origin", "actual", "summer", CALM_REF, CALM, "chronos2", "normal_fwd", HEAD, HEAD_OFF, "head", "krei_issue", "S1", "ship_q",
+            "gate_calm", "gate_hgb", "gate_ridge", "tmonth", "winter_ridge"]
+    return d[lead + [c for c in d.columns if c not in lead]]
+
+
+def assemble(d: pd.DataFrame, calm: pd.Series, issues: pd.DataFrame, fall: pd.DataFrame, monthly: bool) -> pd.DataFrame:
+    """주어진 평시 판정(calm)으로 1) 게이트 3) 잔차 β 4) 9월 고온 층을 계산한 사본. 겨울 분기 값(winter_ridge)은 d 에 있는 것을 쓴다."""
+    d = d.copy()
+    d["gate_calm"] = calm.astype(int)
+    d["gate_hgb"] = np.where(d.gate_calm == 1, d[CALM], d["head"])      # 1단계 게이트
+    d["gate_ridge"] = np.where(d.gate_calm == 1, d[CALM_REF], d["head"])  # 참고: 평시 = 가격만 ridge (case06 G_K)
+    target = d.origin + pd.Timedelta(days=15)
+    use_wr = d.tmonth.isin(WINTER_MONTHS) & d.winter_ridge.notna()
 
     # 3) 잔차 β 층
-    fall = load_fall_issues()
     alert = (d.summer == 1) & (d.gate_calm == 0) & d.S1.notna()
     adj_issue, s_adj, factor = [], [], []
     for o, ty, tm, al in zip(d.origin, target.dt.year, d.tmonth, alert):
@@ -176,8 +206,7 @@ def run(freq: str = "M") -> pd.DataFrame:
     d["final_base"] = np.where(use_wr, d.winter_ridge, d.gate_beta)                  # 2차 편입까지(게이트 + 겨울 분기 + 잔차 β)
 
     # 4) 9월 고온 층 (case17, 월말 9월 원점 한정)
-    d = heat_hold(d, fall, monthly=(freq == "M"))
-    return d
+    return heat_hold(d, fall, monthly)
 
 
 def heat_hold(d: pd.DataFrame, fall: pd.DataFrame, monthly: bool) -> pd.DataFrame:
@@ -240,7 +269,7 @@ if __name__ == "__main__":
     freq = sys.argv[1] if len(sys.argv) > 1 else "M"
     tag = "" if freq == "M" else f"_{freq}"
     d = run(freq)
-    cols = [CALM_REF, "chronos2", CALM, HEAD, HEAD_OFF, "head", "gate_ridge", "gate_hgb", "gate_wr", "gate_beta", "final_base", FINAL]
+    cols = [CALM_REF, "chronos2", CALM, HEAD, HEAD_OFF, "head", "gate_ridge", "gate_hgb", "gate_wr", "gate_beta", "final_base", FINAL_PROD_ONLY, FINAL]
     d.to_csv(OUT / f"gate_predictions{tag}.csv", index=False, float_format="%.1f", encoding="utf-8-sig")
     met = metrics(d, cols)
     met.to_csv(OUT / f"gate_metrics{tag}.csv", index=False, float_format="%.2f")
@@ -254,4 +283,4 @@ if __name__ == "__main__":
     sc = d[d.origin.isin(keys)].copy()
     for c in cols:
         sc[c + "%"] = ((sc[c] / sc.actual - 1) * 100).round(0)
-    print(sc[["origin", "actual", "krei_issue", "S1", "gate_calm", "adj_issue", "adj_pct"] + [c + "%" for c in cols]].to_string(index=False))
+    print(sc[["origin", "actual", "krei_issue", "S1", "ship_q", "gate_calm", "adj_issue", "adj_pct"] + [c + "%" for c in cols]].to_string(index=False))

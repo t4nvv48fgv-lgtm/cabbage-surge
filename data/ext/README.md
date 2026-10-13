@@ -14,7 +14,10 @@
 
 | `krei_nonsummer_issues.csv` (2026-10-12 등록) | 같은 판독표에서 추출(`experiments/case16_season_supply_adjust/outputs/issues_nonsummer_2021_2026.csv`의 복사본) | **KREI 농업관측 월보 호별 겨울·봄·가을배추 생산량·면적 전망 전년비** 2021~2026. 열: season, sub, crop_year, year, issue_month, prod_yoy, area_yoy, label. 메인 `src/gate_model.py`의 잔차 β 층이 **가을 행만** 사용(대상월 11~12월). 겨울·봄 행은 현재 미사용 | 2026-09호까지 | KREI 농업관측센터 월보(공개 발간물)의 수치. 생성 `experiments/case16_season_supply_adjust/season_supply_adjust.py:load_issues` |
 
+| `krei_shipment_outlook.csv` (2026-10-13 등록) | `experiments/case30_shipment_sign/krei_shipment_outlook_2021_2026.csv`의 복사본 | **KREI 농업관측 월보 호별 '그 달 배추 출하량' 전망의 전년 대비 방향** 2021-06호~2026-09호(6~10월호 28개). 열: year, issue_month, q_sign(+1 증가·0 비슷·−1 감소·빈칸 표현 없음), q_pct, basis, wording, source. 메인 `src/gate_model.py`의 여름 게이트가 `q_sign`만 사용(생산 전망 ≤ 0이어도 출하량 전망이 증가면 평시). 새 호마다 한 줄 추가 | 2026-09호까지 | KREI 농업관측센터 월보(공개 발간물)의 본문·표지·요약 문장을 판독. 2021년 호는 PDF에 글자가 없어 같은 호의 원고에서 읽음 |
+
 주의
+- `krei_shipment_outlook.csv`는 문장의 방향만 읽은 것이다. 판독이 약한 호: 2022년 10월호(평년 대비 표현만), 2024년 10월호(요약 그림으로 판단), 2025·2026년 6월호(표현 없음, 빈칸).
 - `krei_summer_issues.csv`의 `pub_date`는 실제 게시일이 아니라 "호 월 5일" 가정이다(8월호 실제 게시 8/1~8/5). 2025년 6월호부터 면적 기준이 바뀌어(4,964→3,418ha) 연도 간 수준 비교는 불가, 호 안의 전년비만 쓴다.
 - 농넷 정리본의 `variety_std`는 원 품종명을 10개로 표준화한 것(고랭지·여름·봄·저장·월동·가을·쌈·절임·수입·기타·기타부산물). 매핑은 build_panel.py 상단. 시장명은 "도매시장/도매" 접미를 제거해 이전 추출본(`농넷_배추.xlsx`)과 맞췄다.
 - 비축 실적의 기간은 손으로 적은 문자열(`'17.5.29.~'17.8.29`, `24.4.23~8.5`, `23.3.29 / 23.5.3~5.22`, `26.7.23~` 등)이라 case05 파서가 **최선 추정**으로 날짜를 뽑는다. 파싱 결과와 원문을 나란히 저장해 검산할 수 있게 둔다.
