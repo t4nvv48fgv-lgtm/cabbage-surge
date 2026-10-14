@@ -4,7 +4,7 @@
 지원: 제목(#·##·###), 문단, 글머리표(- , 두 칸 들여쓴 하위 항목), 번호 목록, 파이프 표, ``` 코드 블록, **굵게**, `코드`.
 글꼴·스타일·표는 tools/make_report.py 의 것을 재사용한다(한글 글꼴 등록 포함).
 
-실행:  python tools/md_to_pdf.py docs/모형설명_2026-10-13.md [--out docs/모형설명_2026-10-13.pdf]
+실행:  python tools/md_to_pdf.py docs/모형설명_2026-10-14.md [--out docs/모형설명_2026-10-14.pdf]
 """
 from __future__ import annotations
 

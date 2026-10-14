@@ -3,7 +3,7 @@
 백테스트(backtest.py·anomaly_model.py·gate_model.py)는 실제값이 있는 원점만 돌린다. 이 스크립트는 같은 부품·같은 학습 규칙
 (확장 창, 학습 줄의 대상 기간 종료 ≤ 원점, 사흘에 한 줄)으로 한 원점만 계산한다.
 
-  부품: 대표 an_sparse_all / an_sparse_ship, 평시 wx_hgb_summer, 가격만 ridge, 겨울 작형 가격만 ridge
+  부품: 대표 an_sparse_all / an_sparse_ship, 평시 calm_avg(wx_hgb_summer 의 솎기 시작점 0·1·2 평균), 가격만 ridge, 겨울 작형 가격만 ridge
   규칙: 0) 대표 모형 계절 구분  1) 여름 공급 게이트(생산 전망 + 출하량 전망 방향)  2) 겨울 분기  3) 잔차 β  4) 9월 고온 층(월말 9월 원점만; γ 는 outputs/gate_predictions.csv 의 과거 원점으로 추정)
 
 Usage: python src/forecast_live.py 2026-09-30 [M|W]     (M = 월말 원점 규칙[9월 고온 층 적용 가능], W = 주간 원점 규칙)
@@ -43,10 +43,12 @@ def components(o: pd.Timestamp) -> dict:
         rec[name] = float(np.exp(te.norm_fwd.iloc[0] + m.predict(te[feats])[0]))
     rec["n_train_anomaly"] = len(tr)
     # 가격만 ridge, 평시 HGB
-    bpool = df[(df.is_trading == 1) & df[bt.TARGET].notna()].dropna(subset=bt.PRICE_FEATS + bt.SUPPLY_FEATS + bt.WX_FEATS).iloc[::3]
+    bfull = df[(df.is_trading == 1) & df[bt.TARGET].notna()].dropna(subset=bt.PRICE_FEATS + bt.SUPPLY_FEATS + bt.WX_FEATS)
+    bpool = bfull.iloc[::3]
     btr = bpool[bpool.index + pd.Timedelta(days=H) <= o]
     for name in ("price_only_ridge", "wx_hgb_summer"):
         rec[name] = float(np.exp(te[bt.BASE].iloc[0] + bt.fit_predict(name, btr, te)))
+    rec[gm.CALM] = float(np.exp(te[bt.BASE].iloc[0] + np.mean(gm.calm_thin_predictions(bfull, te, o))))   # 평시 모형: 솎기 시작점 평균 (case31)
     # 겨울 모형
     target = o + pd.Timedelta(days=15)
     rec["tmonth"] = target.month
@@ -69,7 +71,7 @@ def assemble(rec: dict, monthly: bool) -> dict:
     calm = pd.notna(rec["S1"]) and (rec["S1"] > 0 or rec["ship_q"] > 0)      # 생산 전망이 줄어도 출하량 전망이 증가면 평시 (case30)
     rec["state"] = "평시" if calm else ("경보" if rec["summer"] == 1 and pd.notna(rec["S1"]) else "해당 없음")
     rec["head"] = rec["an_sparse_all"] if rec["summer"] == 1 else rec["an_sparse_ship"]
-    rec["gate_hgb"] = rec["wx_hgb_summer"] if calm else rec["head"]
+    rec["gate_hgb"] = rec[gm.CALM] if calm else rec["head"]
     ty = (o + pd.Timedelta(days=15)).year
     k, s, beta = np.nan, np.nan, 0.0
     if rec["state"] == "경보":
@@ -102,7 +104,7 @@ if __name__ == "__main__":
         row = pd.concat([old[~((old.origin == o) & (old.rule == row.rule.iloc[0]))], row], ignore_index=True).sort_values(["origin", "rule"])
     row.to_csv(out, index=False, float_format="%.2f", encoding="utf-8-sig")
     print(f"원점 {o.date()} ({'월말' if monthly else '주간'} 규칙) → 대상 {(o + pd.Timedelta(days=1)).date()} ~ {(o + pd.Timedelta(days=H)).date()}")
-    for k in ("p7", "p28", "normal_fwd", "price_only_ridge", "wx_hgb_summer", "an_sparse_all", "an_sparse_ship", "winter_ridge"):
+    for k in ("p7", "p28", "normal_fwd", "price_only_ridge", "wx_hgb_summer", gm.CALM, "an_sparse_all", "an_sparse_ship", "winter_ridge"):
         print(f"  {k:18s} {rec[k]:10.0f}" if pd.notna(rec[k]) else f"  {k:18s}          -")
     print(f"  게이트: 월보 {rec['krei_issue']} 여름 생산 전망 {rec['S1']}, 출하량 전망 방향 {rec['ship_q']} → {rec['state']}, 대표 = {'an_sparse_all' if rec['summer'] == 1 else 'an_sparse_ship'} (고랭지 기상 켜짐 정도 {rec['w_summer_ship']:.2f})")
     print(f"  수준 조정: {rec['adj_issue']} S {rec['S_adj']} → {rec['adj_pct']:+.1f}%  → final_base {rec['final_base']:.0f}")

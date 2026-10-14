@@ -5,8 +5,9 @@
   1차 게이트  2741e43 gate_hgb   (2026-10-12, 대표 + 생산 전망 게이트)
   2차         3569174 final      (겨울 분기 + 잔차 β)
   3차         b5a34ee final      (9월 고온 층)
-  4차         현재 파일의 final_prod_only  (고랭지 기상은 출하기에만 + 게이트 호 수정. 게이트는 생산 전망만)
-  5차         현재 파일의 final  (게이트에 출하량 전망 방향을 엮음, case30)
+  4차         7873051 final_prod_only  (고랭지 기상은 출하기에만 + 게이트 호 수정. 게이트는 생산 전망만)
+  5차         7873051 final      (게이트에 출하량 전망 방향을 엮음, case30)
+  6차         현재 파일의 final  (평시 모형을 학습 줄 솎기 시작점 0·1·2 평균으로, case31)
 
 Usage: python tools/monthly_error_table.py
 Outputs: outputs/monthly_error_by_version.csv        (대상월 한 줄: 실제가격, 판별 오차율 %)
@@ -22,8 +23,9 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "outputs"
-PAST = {"1차 게이트": ("2741e43", "gate_hgb"), "2차": ("3569174", "final"), "3차": ("b5a34ee", "final")}
-VERSIONS = ["가격만", "1차 게이트", "2차", "3차", "4차", "5차"]
+PAST = {"1차 게이트": ("2741e43", "gate_hgb"), "2차": ("3569174", "final"), "3차": ("b5a34ee", "final"),
+        "4차": ("7873051", "final_prod_only"), "5차": ("7873051", "final")}
+VERSIONS = ["가격만", "1차 게이트", "2차", "3차", "4차", "5차", "6차"]
 
 
 def past_column(commit: str, col: str, tag: str = "") -> pd.Series:
@@ -35,7 +37,7 @@ def past_column(commit: str, col: str, tag: str = "") -> pd.Series:
 
 def build() -> pd.DataFrame:
     d = pd.read_csv(OUT / "gate_predictions.csv", parse_dates=["origin"], encoding="utf-8-sig").set_index("origin")
-    pred = pd.DataFrame({"가격만": d.price_only_ridge, "4차": d.final_prod_only, "5차": d.final})
+    pred = pd.DataFrame({"가격만": d.price_only_ridge, "6차": d.final})
     for name, (commit, col) in PAST.items():
         pred[name] = past_column(commit, col).reindex(d.index)
     err = pred[VERSIONS].div(d.actual, axis=0).sub(1).mul(100)
@@ -57,7 +59,7 @@ if __name__ == "__main__":
     print(f"대상월 {s.target_month.min()} ~ {s.target_month.max()} ({len(s)}개)")
     print(a.round(1).to_string())
     g = s.assign(y=s.target_month.str[:4], m=s.target_month.str[5:].astype(int))
-    for v in ("4차", "5차"):
+    for v in ("5차", "6차"):
         print(f"\n[{v}] 대상월별 오차율(%)")
         print(g.pivot(index="y", columns="m", values=v).round(0).to_string())
     print("\n30% 초과:", {v: int((s[v].abs() > 30).sum()) for v in VERSIONS})

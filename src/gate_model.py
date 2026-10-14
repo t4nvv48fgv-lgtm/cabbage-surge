@@ -4,7 +4,8 @@
 
   1) 게이트(gate_hgb): 공급 게이트가 "조용함"이면 평시 모형, 아니면 대표 모형.
        대표 모형   an_sparse_all   (anomaly_model.py: 평년치 기준점 + 현재 가격 편차 지속 + 고랭지 기상 편차, 희소 ridge)
-       평시 모형   wx_hgb_summer   (backtest.py: 기상 HGB 여름특화) — case10에서 선택(사용자 결정 2026-10-12)
+       평시 모형   calm_avg        (backtest.py 의 wx_hgb_summer[기상 HGB 여름특화, case10에서 선택]를 학습 줄 솎기 시작점 0·1·2 로
+                                    따로 학습한 예측의 로그 평균 — 2026-10-14 6차 편입, 아래 5) 참조)
        게이트 S1   KREI 농업관측 월보 여름배추(당해년산) 생산량 전망 전년비 — 원점에서 알 수 있는 최신호 값
                    (규약 B: m월호는 (m−1)월 말일부터 가용. 7월 말 원점은 8월호를 본다. 2026-10-13 수정, 종전은 호 월 5일 가정).
                    여름 원점(6~9월)에서 S1 > 0 (공급이 전년보다 늘 것이라는 전망) 이면 calm → 평시 모형,
@@ -37,12 +38,20 @@
        여름 원점에서는 고랭지가 출하기라 두 사양의 기상 재료가 사실상 같으므로 종전 값을 그대로 둔다(게이트·경보 조정·9월 고온 층·성공 기준 달 불변).
        열 head = 원점별로 실제 쓰인 대표 모형 값. 월말 2021~2025 MAPE 11.62 → 11.38, 2016~2020 18.54 → 17.37, 주간 15.10 → 15.09(30% 초과 23 → 26).
 
+  5) 평시 모형의 솎기 시작점 평균(case31, 2026-10-14 6차 편입, 사용자 "평시 평균 메인에 넣어줘"):
+       모든 부품은 거래일 사흘에 한 줄만 학습한다(iloc[::3], 시작점 0). 시작점은 고른 값이 아니라 기본값인데 나무 모형인 평시 HGB 만
+       시작점에 따라 원점별 예측이 크게 움직인다(세 시작점 사이 표준편차 평균 4.4%·최대 10.3%; 직선형 부품은 0.2~0.4%).
+       → 평시 모형만 세 시작점으로 따로 학습해 예측을 로그 평균한다(열 calm_avg). 대표·겨울 모형은 그대로(시작점 0).
+       월말 2021~2025 MAPE 11.38 → 11.39, 2021~2026 10.72 → 10.80, 주간 15.15 → 15.02. 평균 성적은 같고 달별 값이 바뀐다
+       (8/31 → 9월: 2021 +2 → −4%, 2025 +15 → +20%; 2023-07 +34 → +22%). 9월 고온 층의 γ 도 2023년 9월 말 평시 모형 오차에서 배우므로
+       같이 바뀐다(2024-10 0 → +3%). 급등 해의 경보 원점(2022-09·2024-09)은 불변. 종전 값(시작점 0)은 참고 열 wx_hgb_summer.
+
 게이트 규칙·임계(0)는 case06에서 2024·2025를 본 뒤 정한 사후 설계이며 신호는 6개 해(급등 2회)뿐이다. 평시 모형 선택은 case10(2016~2020 설계
 구간에서는 가격만 ridge가 더 나았고, 2021~ 검증 구간에서 HGB가 나음). 겨울 분기와 β는 각각 2016~2020에서 정했으나 둘을 함께 얹기로 한 결정은
 2021~2025 결과를 본 뒤다(대상 달이 겹치지 않아 조합에서 새로 고른 값은 없음). 서술 상한은 README "성공 기준 점검" 참조.
 
 Usage: python src/gate_model.py [M|W]   (outputs/backtest_predictions{tag}.csv, anomaly_predictions{tag}.csv, data/processed/daily_features.csv 가 먼저 있어야 함)
-Outputs: outputs/gate_predictions{tag}.csv  (origin, actual, summer, krei_issue, S1, ship_q, gate_calm, 대표·평시·gate_hgb, 참고 gate_ridge,
+Outputs: outputs/gate_predictions{tag}.csv  (origin, actual, summer, krei_issue, S1, ship_q, gate_calm, 대표·평시(calm_avg)·gate_hgb, 참고 gate_ridge·wx_hgb_summer,
                                             tmonth, winter_ridge, adj_issue, S_adj, adj_pct, gate_wr(겨울 분기만), gate_beta(β 층만),
                                             final_base(3단계까지), heat_H, heat_F, heat_gamma_pct, heat_pct, final,
                                             참고 final_prod_only(게이트를 생산 전망만으로 판정한 최종값))
@@ -64,7 +73,9 @@ OUT = ROOT / "outputs"
 KREI_ISSUES = ROOT / "data" / "ext" / "krei_summer_issues.csv"
 SEASON_ISSUES = ROOT / "data" / "ext" / "krei_nonsummer_issues.csv"
 SHIP_ISSUES = ROOT / "data" / "ext" / "krei_shipment_outlook.csv"   # 호별 그 달 출하량 전망 방향 (case30, 2026-10-13)
-HEAD, CALM, CALM_REF = "an_sparse_all", "wx_hgb_summer", "price_only_ridge"
+HEAD, CALM, CALM_REF = "an_sparse_all", "calm_avg", "price_only_ridge"
+CALM_RAW = "wx_hgb_summer"       # backtest.py 의 평시 모형(솎기 시작점 0). CALM = 이 모형의 시작점 0·1·2 예측 로그 평균 (case31, 2026-10-14)
+THIN_STEP, THIN_STARTS = 3, (0, 1, 2)
 HEAD_OFF = "an_sparse_ship"      # 여름 원점 밖의 대표 모형: 고랭지 기상을 여름 작형 출하기에만 (case27, 2026-10-13)
 FINAL = "final"
 FINAL_PROD_ONLY = "final_prod_only"   # 참고 열: 게이트를 생산 전망만으로 판정했을 때의 최종값
@@ -121,6 +132,37 @@ def adjust_signal(issues: pd.DataFrame, origin: pd.Timestamp, year: int, crop_co
     return f"{int(r.year)}-{int(r.issue_month):02d}", float(v)
 
 
+def calm_thin_predictions(pool: pd.DataFrame, te: pd.DataFrame, origin: pd.Timestamp) -> list[float]:
+    """솎기 전 학습 풀(pool)을 시작점별로 솎아 따로 학습한 평시 모형의 예측(로그 변화) 목록. 누수 차단은 backtest 와 같다."""
+    import backtest as bt
+
+    out = []
+    for k in THIN_STARTS:
+        tr = pool.iloc[k::THIN_STEP]
+        out.append(bt.fit_predict(CALM_RAW, tr[tr.index + pd.Timedelta(days=28) <= origin], te))
+    return out
+
+
+def calm_mean(d: pd.DataFrame) -> pd.Series:
+    """평시 모형을 학습 줄 솎기 시작점 0·1·2 로 따로 학습한 예측의 로그 평균 (case31 '평시 평균'). d 의 원점 순서대로 돌려준다.
+
+    학습 재료·사양·누수 차단은 backtest.py 와 같다. 시작점 0 의 값이 backtest 열(CALM_RAW)과 같은지 원점마다 확인한다.
+    """
+    import backtest as bt
+
+    df = pd.read_csv(bt.PROC / "daily_features.csv", parse_dates=["date"]).set_index("date")
+    df[bt.TARGET] = df["y_lp_fwd28"] - df[bt.BASE]
+    pool = df[(df.is_trading == 1) & df[bt.TARGET].notna()].dropna(subset=bt.PRICE_FEATS + bt.SUPPLY_FEATS + bt.WX_FEATS)
+    out = []
+    for o, ref in zip(d.origin, d[CALM_RAW]):
+        te = df.loc[[o]]
+        base = float(te[bt.BASE].iloc[0])
+        yh = calm_thin_predictions(pool, te, o)
+        assert abs(float(np.exp(base + yh[0])) - ref) < 0.11, f"시작점 0 이 backtest 의 {CALM_RAW} 와 다르다: {o.date()}"
+        out.append(float(np.exp(base + np.mean(yh))))
+    return pd.Series(out, index=d.index)
+
+
 def winter_price_ridge(origins: pd.DatetimeIndex) -> pd.DataFrame:
     """겨울 작형(대상월 1~4월) 학습 행만으로 적합한 가격만 ridge 예측. case15 season_trained 의 s_price_ridge 와 같은 학습 풀·사양."""
     import anomaly_model as am
@@ -151,7 +193,8 @@ def run(freq: str = "M") -> pd.DataFrame:
     tag = "" if freq == "M" else f"_{freq}"
     b = pd.read_csv(OUT / f"backtest_predictions{tag}.csv", parse_dates=["origin"])
     a = pd.read_csv(OUT / f"anomaly_predictions{tag}.csv", parse_dates=["origin"])
-    d = b[["origin", "actual", "summer", CALM_REF, CALM, "chronos2"]].merge(a[["origin", "normal_fwd", HEAD, HEAD_OFF]], on="origin")
+    d = b[["origin", "actual", "summer", CALM_REF, CALM_RAW, "chronos2"]].merge(a[["origin", "normal_fwd", HEAD, HEAD_OFF]], on="origin")
+    d[CALM] = calm_mean(d)                                               # 5) 평시 모형: 솎기 시작점 0·1·2 평균 (case31)
     d["head"] = np.where(d.summer == 1, d[HEAD], d[HEAD_OFF])            # 0) 대표 모형: 여름 원점은 종전, 그 밖은 출하기 한정 기상
     issues = load_issues()
     sig = [latest_signal(issues, o) if s == 1 else (np.nan, np.nan) for o, s in zip(d.origin, d.summer)]
@@ -170,7 +213,7 @@ def run(freq: str = "M") -> pd.DataFrame:
     ref = assemble(d, calm_prod, issues, fall, monthly=(freq == "M"))[FINAL].values
     d = assemble(d, calm, issues, fall, monthly=(freq == "M"))
     d[FINAL_PROD_ONLY] = ref                                             # 참고: 게이트를 생산 전망만으로 판정한 최종값(case30 채택 전 규칙)
-    lead = ["origin", "actual", "summer", CALM_REF, CALM, "chronos2", "normal_fwd", HEAD, HEAD_OFF, "head", "krei_issue", "S1", "ship_q",
+    lead = ["origin", "actual", "summer", CALM_REF, CALM_RAW, CALM, "chronos2", "normal_fwd", HEAD, HEAD_OFF, "head", "krei_issue", "S1", "ship_q",
             "gate_calm", "gate_hgb", "gate_ridge", "tmonth", "winter_ridge"]
     return d[lead + [c for c in d.columns if c not in lead]]
 
@@ -269,7 +312,7 @@ if __name__ == "__main__":
     freq = sys.argv[1] if len(sys.argv) > 1 else "M"
     tag = "" if freq == "M" else f"_{freq}"
     d = run(freq)
-    cols = [CALM_REF, "chronos2", CALM, HEAD, HEAD_OFF, "head", "gate_ridge", "gate_hgb", "gate_wr", "gate_beta", "final_base", FINAL_PROD_ONLY, FINAL]
+    cols = [CALM_REF, "chronos2", CALM_RAW, CALM, HEAD, HEAD_OFF, "head", "gate_ridge", "gate_hgb", "gate_wr", "gate_beta", "final_base", FINAL_PROD_ONLY, FINAL]
     d.to_csv(OUT / f"gate_predictions{tag}.csv", index=False, float_format="%.1f", encoding="utf-8-sig")
     met = metrics(d, cols)
     met.to_csv(OUT / f"gate_metrics{tag}.csv", index=False, float_format="%.2f")
