@@ -1,6 +1,6 @@
 """원고(manuscript/main.md)의 표 2~5 값을 outputs/*.csv 에서 계산해 마크다운으로 찍는다. 원고의 표는 이 출력과 같아야 한다.
 
-결합 모형 = gate_predictions 의 final_base (계절편차 모형 + 겨울 전용 모형 + 모형 전환 + 수준 보정. 9월 고온 보정 제외).
+결합 모형 = gate_predictions 의 final (계절편차 모형 + 겨울 전용 모형 + 모형 전환 + 수준 보정 + 9월 고온 보정). 2026-11-17 사용자 결정 "원고에 9월 고온 층 넣어줘".
 단계별 값은 gate_model.assemble 을 관측 전망정보 없이/일부만으로 다시 불러 계산한다.
 
 Usage: python tools/make_paper_tables.py   (원고에 붙일 표와, 본문에 쓰는 낱수치 목록을 출력)
@@ -19,7 +19,7 @@ sys.path.insert(0, str(ROOT / "src"))
 import gate_model as gm  # noqa: E402
 
 OUT = ROOT / "outputs"
-MODEL = "final_base"
+MODEL = "final"
 SHIP = {1.0: "증가", 0.0: "비슷", -1.0: "감소"}
 
 
@@ -41,7 +41,8 @@ def stages(d: pd.DataFrame, monthly: bool) -> pd.DataFrame:
     finally:
         gm.BETA_SUMMER_ALERT, gm.BETA_FALL = bs, bf
     return pd.DataFrame({"가격만 ridge": d.price_only_ridge, "Chronos-2 제로샷": d.chronos2, "MSTL+AutoETS": d.mstl_ets,
-                         "계절편차 모형": d["head"], "+ 겨울 전용 모형": winter, "+ 모형 전환": gate, "+ 수준 보정(결합 모형)": d[MODEL]})
+                         "계절편차 모형": d["head"], "+ 겨울 전용 모형": winter, "+ 모형 전환": gate, "+ 수준 보정": d["final_base"],
+                         "+ 9월 고온 보정(결합 모형)": d[MODEL]})
 
 
 def pct(v, signed=True):
@@ -119,10 +120,13 @@ def main():
         late.append(bool(s1 > 0 or ship.get(f"{int(rr.year)}-{int(rr.issue_month):02d}", np.nan) > 0))
     late = pd.Series(late, index=m.index)
     diff = m[(late != (m.gate_calm == 1)) & (m.summer == 1) & y.between(2021, 2025)]
-    lp = gm.assemble(m, late, iss, gm.load_fall_issues(), True).final_base
+    lp = gm.assemble(m, late, iss, gm.load_fall_issues(), True)[MODEL]
     print("한 호 늦춘 모형 선택: 2021~2025 6~9월 월말 원점 중 바뀌는 수", len(diff), [str(o.date()) for o in diff.origin],
           "평균 오차율", round(((lp / m.actual - 1).abs() * 100)[y.between(2021, 2025)].mean(), 2))
-    prod = gm.assemble(m, (m.S1 > 0) & m.S1.notna(), gm.load_issues(), gm.load_fall_issues(), True).final_base
+    h = m[(m.origin.dt.month == 9) & (m.tmonth == 10)]
+    print("9월 고온 보정(9월 말 원점):", [(int(o.year), f"H {hh:.1f}", f"F {ff}", f"γ {gg:.1f}%/일", f"보정 {pp:+.1f}%", f"보정 전 {pct((fb / a - 1) * 100)}", f"후 {pct((fn / a - 1) * 100)}")
+                                for o, hh, ff, gg, pp, fb, fn, a in zip(h.origin, h.heat_H, h.heat_F, h.heat_gamma_pct, h.heat_pct, h.final_base, h.final, h.actual)])
+    prod = gm.assemble(m, (m.S1 > 0) & m.S1.notna(), gm.load_issues(), gm.load_fall_issues(), True)[MODEL]
     print("출하량 전망 규칙 제외(생산 전망만): 2021~2025", round(((prod / m.actual - 1).abs() * 100)[y.between(2021, 2025)].mean(), 2), "2021~2026", round(((prod / m.actual - 1).abs() * 100)[y.between(2021, 2026)].mean(), 2))
 
 

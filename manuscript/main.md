@@ -15,10 +15,10 @@ csl: ../styles/citation.csl
 인용: references.bib 등록 0건이라 전부 [CITATION NEEDED: ...] 자리표시자. 서지 확인·등록은 사용자 승인 후. KREI 두 연구는 인용 가능 범위 확인이 먼저.
 수치: outputs/*.csv → tools/make_paper_tables.py 출력 → 이 원고. 표 2~5와 본문 낱수치는 그 출력과 같아야 한다. 그림은 tools/make_paper_figures.py.
 자료 시점: 가격 2026-10-08까지(2026-10-09 백테스트 실행분). 그 뒤의 자료 갱신은 반영하지 않았다.
-결합 모형 = outputs/gate_predictions.csv 의 final_base (계절편차 모형 + 겨울 전용 모형 + 모형 전환 + 수준 보정).
-  9월 고온 보정(열 final 과 final_base 의 차이)은 이 원고의 모형에 넣지 않았다. 과거 검증에서 바뀌는 달이 2024-10 하나라는 이유다.
-  메인 코드의 최종값(final, 11.39%)에는 들어 있다. 2026년 10월은 월보 10월호의 가을배추 생산 전망이 +13.7%라 이 보정이 꺼지는 해여서
-  표본외 시험이 되지 못했다(README "9월 고온 층의 2026년 10월 점검"). 원고에 넣을지는 사용자 판단 대기.
+결합 모형 = outputs/gate_predictions.csv 의 final (계절편차 모형 + 겨울 전용 모형 + 모형 전환 + 수준 보정 + 9월 고온 보정). 메인 코드의 최종값과 같다.
+  2026-11-17 사용자 결정 "원고에 9월 고온 층 넣어줘"로 9월 고온 보정을 넣었다(초고는 final_base 11.9% 기준이었다).
+  이 보정이 과거 검증에서 바꾸는 달은 2024-10 하나라는 단서를 초록·3.4절·4장에 적는다. "10월 하락 전환을 잡는다"고 쓰지 않는다.
+  2026년 10월은 월보 10월호의 가을배추 생산 전망이 +13.7%라 보정이 꺼지는 해다(자료 시점 밖이라 본문에는 넣지 않음).
 모형 이름: 가격만 ridge / 기상 ridge / 기상 HGB / 여름특화 HGB / 계절편차 모형 / Chronos-2 제로샷 / MSTL+AutoARIMA / MSTL+AutoETS / 결합 모형.
   표 3·5의 계절편차 모형은 gate_predictions 의 head(6~9월 원점은 an_sparse_all, 그 밖은 an_sparse_ship). 여름특화 HGB는 calm_avg(추출 시작 위치 세 벌 평균).
 쓰지 않는 문장(AGENTS.md·CLAUDE.md): "급등을 예측한다", "10월 전환을 잡는다", "폭염 모형이 급등을 따라간다", "기상이 평시 정확도를 개선한다",
@@ -30,13 +30,13 @@ csl: ../styles/citation.csl
 
 <!-- 초록 초고 (2026-11-17). 수치는 3장 표와 같음. 길이는 저널 확정 후 조정. -->
 
-2024년 9월 가락시장 배추 상품 가격은 10kg당 24,714원으로 전월보다 45% 올랐고, 가격 이력에 기댄 예측모형들은 이 급등을 실제보다 크게 낮게 예측했다. 이 연구는 2016~2026년의 월말·주간 원점에서 앞으로 28일의 평균가격을 예측하는 모형들을 같은 원점과 같은 예측 대상으로 비교해, 과소 예측의 원인과 급등을 따라가는 모형이 치르는 비용을 분석하고, 농업관측 월보의 생산·출하 전망을 결합한 모형을 평가했다. 2024년 8월 말 원점에서 가격만 쓰는 ridge 회귀는 9월 가격을 37% 낮게 예측하지만 같은 가격 이력만 쓰는 Chronos-2와 MSTL은 13~18% 낮게 예측해, 과소 예측은 가격 정보보다 예측을 최근 평균으로 되돌리는 모형 구조에서 비롯된다. 평년 가격을 기준으로 현재의 가격 편차를 잇는 계절편차 모형은 2024년을 보지 않고 고른 설정으로 10% 낮게 예측하나, 급등이 없던 2025년 9월은 21% 높게 예측한다. 월보의 여름배추 생산·출하량 전망에 따라 모형을 바꾸고 생산량 전망만큼 예측 수준을 보정하면, 2021~2025년 월말 원점 60개의 평균 오차율은 11.9%로 가격만 쓰는 모형의 15.1%보다 낮고 2024년 9월의 과소폭은 6%이다. 전망정보를 빼면 평균 오차율은 14.8%이다. 모형을 바꾸는 기준은 2024·2025년의 결과를 본 뒤 정했고 전망정보를 쓸 수 있는 해는 여섯 해이며, 급등 뒤의 하락 전환과 작형이 바뀌는 달의 오차는 줄이지 못한다.
+2024년 9월 가락시장 배추 상품 가격은 10kg당 24,714원으로 전월보다 45% 올랐고, 가격 이력에 기댄 예측모형들은 이 급등을 실제보다 크게 낮게 예측했다. 이 연구는 2016~2026년의 월말·주간 원점에서 앞으로 28일의 평균가격을 예측하는 모형들을 같은 원점과 같은 예측 대상으로 비교해, 과소 예측의 원인과 급등을 따라가는 모형이 치르는 비용을 분석하고, 농업관측 월보의 생산·출하 전망을 결합한 모형을 평가했다. 2024년 8월 말 원점에서 가격만 쓰는 ridge 회귀는 9월 가격을 37% 낮게 예측하지만 같은 가격 이력만 쓰는 Chronos-2와 MSTL은 13~18% 낮게 예측해, 과소 예측은 가격 정보보다 예측을 최근 평균으로 되돌리는 모형 구조에서 비롯된다. 평년 가격을 기준으로 현재의 가격 편차를 잇는 계절편차 모형은 2024년을 보지 않고 고른 설정으로 10% 낮게 예측하나, 급등이 없던 2025년 9월은 21% 높게 예측한다. 월보의 여름배추 생산·출하량 전망에 따라 모형을 바꾸고 생산량 전망만큼 예측 수준을 보정하면, 2021~2025년 월말 원점 60개의 평균 오차율은 14.8%에서 11.9%로 낮아지고 2024년 9월의 과소폭은 6%이다. 가을배추 주산지의 9월 고온 일수로 10월 예측을 보정하면 평균 오차율은 11.4%이며, 가격만 쓰는 모형은 15.1%이다. 모형을 바꾸는 기준은 2024·2025년의 결과를 본 뒤 정했고 전망정보를 쓸 수 있는 해는 여섯 해이다. 9월 고온 보정이 예측을 바꾼 달은 2024년 10월 하나이고, 작형이 바뀌는 달의 오차는 줄이지 못한다.
 
 **주요어**: 배추, 도매가격 예측, 가격 급등, 농업관측, 롤링 원점 평가, 머신러닝
 
 **Abstract**
 
-In September 2024 the wholesale price of Kimchi cabbage at the Garak market rose 45% over the previous month to 24,714 KRW per 10 kg, and forecasting models built on price history underpredicted the surge by a wide margin. This study compares models that forecast the mean price over the next 28 days at month-end and weekly origins from 2016 to 2026, on the same origins and the same target, to examine why the surge was underpredicted and what a surge-tracking model costs in years without a surge, and it evaluates a model that incorporates the production and shipment outlook of the monthly Agricultural Outlook bulletin. At the end-of-August 2024 origin a price-only ridge regression underpredicts the September price by 37%, whereas Chronos-2 and MSTL, which use the same price history, underpredict by 13–18%; the underprediction stems less from the price information than from a model structure that pulls the forecast back to the recent mean. A seasonal-anomaly model, which carries the current deviation from the five-year normal price forward and whose settings were chosen without the 2024 data, underpredicts by 10% but overpredicts by 21% in September 2025, a year without a surge. Switching models according to the bulletin's summer cabbage production and shipment outlook and adjusting the forecast level by the production outlook yields a mean absolute percentage error of 11.9% over 60 month-end origins in 2021–2025, against 15.1% for the price-only model, with a 6% underprediction in September 2024. Without the outlook information the error is 14.8%. The switching rule was set after seeing the 2024 and 2025 outcomes and the outlook is available for only six years; the model does not reduce errors at the turn after a surge or in months when the cropping season changes.
+In September 2024 the wholesale price of Kimchi cabbage at the Garak market rose 45% over the previous month to 24,714 KRW per 10 kg, and forecasting models built on price history underpredicted the surge by a wide margin. This study compares models that forecast the mean price over the next 28 days at month-end and weekly origins from 2016 to 2026, on the same origins and the same target, to examine why the surge was underpredicted and what a surge-tracking model costs in years without a surge, and it evaluates a model that incorporates the production and shipment outlook of the monthly Agricultural Outlook bulletin. At the end-of-August 2024 origin a price-only ridge regression underpredicts the September price by 37%, whereas Chronos-2 and MSTL, which use the same price history, underpredict by 13–18%; the underprediction stems less from the price information than from a model structure that pulls the forecast back to the recent mean. A seasonal-anomaly model, which carries the current deviation from the five-year normal price forward and whose settings were chosen without the 2024 data, underpredicts by 10% but overpredicts by 21% in September 2025, a year without a surge. Switching models according to the bulletin's summer cabbage production and shipment outlook and adjusting the forecast level by the production outlook lowers the mean absolute percentage error over 60 month-end origins in 2021–2025 from 14.8% to 11.9%, with a 6% underprediction in September 2024. Adjusting the October forecast by the number of hot days in September in the autumn cabbage regions brings the error to 11.4%, against 15.1% for the price-only model. The switching rule was set after seeing the 2024 and 2025 outcomes and the outlook is available for only six years. The September-heat adjustment changes the forecast in a single month, October 2024, and the model does not reduce errors in months when the cropping season changes.
 
 **Keywords**: Kimchi cabbage, wholesale price forecasting, price surge, agricultural outlook, rolling-origin evaluation, machine learning
 
@@ -53,7 +53,7 @@ In September 2024 the wholesale price of Kimchi cabbage at the Garak market rose
 
 이 연구는 2016~2026년의 월말과 주간 원점에서 앞으로 28일의 평균가격을 예측하는 모형들을 같은 원점과 같은 예측 대상으로 비교해, 2024년 9월 급등을 낮게 예측한 원인, 급등을 따라가는 모형이 급등 없는 해에 치르는 비용, 농업관측 전망정보를 결합했을 때의 예측 성과를 분석한다.
 
-첫째, 가격만 쓰는 회귀모형의 과소 예측은 예측을 최근 평균으로 되돌리는 모형 구조에서 비롯된다. 같은 가격 이력만 쓰는 단변량 모형은 2024년 9월의 과소폭이 절반 이하이다. 둘째, 평년 가격을 기준으로 현재의 가격 편차를 잇는 계절편차 모형은 2024년을 보지 않고 고른 설정으로 급등을 10% 차이로 따라가지만, 급등이 없던 2025년 9월은 21% 높게 예측한다. 셋째, 농업관측 월보의 여름배추 생산·출하량 전망에 따라 모형을 바꾸고 예측 수준을 보정하면 2021~2025년의 평균 오차율이 가격만 쓰는 모형의 15.1%에서 11.9%로 낮아진다.
+첫째, 가격만 쓰는 회귀모형의 과소 예측은 예측을 최근 평균으로 되돌리는 모형 구조에서 비롯된다. 같은 가격 이력만 쓰는 단변량 모형은 2024년 9월의 과소폭이 절반 이하이다. 둘째, 평년 가격을 기준으로 현재의 가격 편차를 잇는 계절편차 모형은 2024년을 보지 않고 고른 설정으로 급등을 10% 차이로 따라가지만, 급등이 없던 2025년 9월은 21% 높게 예측한다. 셋째, 농업관측 월보의 생산·출하량 전망에 따라 모형을 바꾸고 예측 수준을 보정한 결합 모형은 2021~2025년의 평균 오차율이 11.4%로 가격만 쓰는 모형의 15.1%보다 낮다.
 
 # 2. 자료 및 방법
 
@@ -117,6 +117,12 @@ $$\hat{P}_t = \hat{P}^{0}_t \left(1 + \theta \, S_t / 100\right) \qquad (3)$$
 
 $\hat{P}^{0}_t$는 앞 단계의 예측가격이고 $S_t$는 생산량 전망의 전년 대비 증감률이다. 계절편차 모형을 쓰는 6~9월 원점에서는 여름배추 생산량 전망이 감소일 때 $\theta$를 −0.566으로, 대상월이 11~12월인 원점에서는 가을배추 생산량 전망에 $\theta$를 −0.216으로 둔다. 생산량 전망이 10% 감소이면 여름 예측은 5.7% 오른다. $S_t$는 ±20%에서 자른다. $\theta$는 2016~2020년 원점에서 앞 단계 예측의 로그 오차를 전망 증감률에 절편 없이 회귀한 값이다.
 
+9월 말 원점의 10월 예측에는 가을배추 주산지의 9월 고온을 반영한다. 9월에 더운 날이 많으면 가을배추 출하가 늦어져 10월 가격이 늦게 내린다고 보고 예측가격을 올린다.
+
+$$\hat{P}^{H}_t = \min\left\{ \hat{P}_t \exp(\gamma H_t),\ \max\left(\hat{P}_t, \bar{P}^{7}_t\right) \right\} \qquad (4)$$
+
+$H_t$는 원점 직전 30일 동안 가을배추 주산지의 최고기온이 30℃ 이상인 날의 수이고 $\bar{P}^{7}_t$는 최근 7일 평균가격이다. $\gamma$는 그 해 이전 해들의 9월 말 원점에서 예측의 로그 오차를 $H_t$에 절편 없이 회귀해 해마다 다시 구하며 음수이면 0으로 둔다. 월보 10월호의 가을배추 생산량 전망이 전년보다 증가이면 이 보정을 하지 않는다. 주간 원점에는 적용하지 않는다.
+
 월보 $m$월호는 $m$월 초에 발간되지만 전망은 전월 말에 확정된다. 이 연구는 전망을 작성하는 기관 안에서 예측하는 상황을 전제로 $m$월호의 전망을 전월 말 원점부터 쓴다. 모형을 고르는 기준은 2024년과 2025년의 결과를 본 뒤 정했다.
 
 # 3. 결과
@@ -159,7 +165,7 @@ $\hat{P}^{0}_t$는 앞 단계의 예측가격이고 $S_t$는 생산량 전망의
 | 기상 HGB | 가격·반입량·기상 | −28 | −33 | −26 | +13 | +6 | 14.1 |
 | 여름특화 HGB | 가격·반입량·기상 | −27 | −26 | −32 | +20 | +12 | 13.1 |
 | 계절편차 모형 | 평년 대비 가격 편차·반입량·고랭지 기상 | −20 | −16 | −10 | +21 | −6 | 15.9 |
-| 결합 모형 | 계절편차 모형·여름특화 HGB·농업관측 전망 | −20 | −11 | −6 | +20 | −4 | 11.9 |
+| 결합 모형 | 계절편차 모형·여름특화 HGB·농업관측 전망 | −20 | −11 | −6 | +20 | −4 | 11.4 |
 
 주: 연도 열은 예측가격 ÷ 실제 가격 − 1. 9월 실제 가격은 2020년 23,606원, 2022년 23,601원, 2024년 24,714원, 2025년 13,344원, 2026년 12,843원. 평균 오차율은 2021~2025년 월말 원점 60개의 값. 2020년은 월보 전망을 쓰지 않는 해.
 자료: 저자 작성.
@@ -186,7 +192,7 @@ $\hat{P}^{0}_t$는 앞 단계의 예측가격이고 $S_t$는 생산량 전망의
 
 ## 3.4. 결합 모형의 예측 성과
 
-계절편차 모형의 평균 오차율은 15.9%로 가격만 ridge의 15.1%보다 높다(표 5). 대상월 1~4월에 겨울 전용 모형을 쓰면 14.8%, 월보 전망에 따라 모형을 바꾸면 12.4%, 수준 보정까지 더하면 11.9%이다. 농업관측 전망정보를 결합해 줄어든 평균 오차율은 2.9%포인트이고, 6~9월 원점에서는 21.0%에서 12.7%로 낮아진다. 주간 원점의 평균 오차율은 16.7%에서 15.0%로 낮아진다. 월보 전망을 쓰지 않는 2016~2020년의 평균 오차율은 17.4%이다.
+계절편차 모형의 평균 오차율은 15.9%로 가격만 ridge의 15.1%보다 높다(표 5). 대상월 1~4월에 겨울 전용 모형을 쓰면 14.8%, 월보 전망에 따라 모형을 바꾸면 12.4%, 수준 보정을 더하면 11.9%, 9월 고온 보정까지 더한 결합 모형은 11.4%이다. 모형 전환과 수준 보정으로 줄어든 평균 오차율은 2.9%포인트이고, 6~9월 원점에서는 21.0%에서 12.7%로 낮아진다. 주간 원점의 평균 오차율은 16.7%에서 15.0%로 낮아진다. 월보 전망을 쓰지 않는 2016~2020년의 평균 오차율은 17.4%이다.
 
 **표 5. 단계별 예측 성과 (2021~2025)**
 
@@ -198,7 +204,8 @@ $\hat{P}^{0}_t$는 앞 단계의 예측가격이고 $S_t$는 생산량 전망의
 | 계절편차 모형 | 15.9 | 1,618 | 21.0 | 6 | 16.8 | 18.7 |
 | + 겨울 전용 모형 | 14.8 | 1,508 | 21.0 | 6 | 16.7 | 17.4 |
 | + 모형 전환 | 12.4 | 1,316 | 13.7 | 3 | 15.2 | 17.4 |
-| + 수준 보정(결합 모형) | 11.9 | 1,241 | 12.7 | 4 | 15.0 | 17.4 |
+| + 수준 보정 | 11.9 | 1,241 | 12.7 | 4 | 15.0 | 17.4 |
+| + 9월 고온 보정(결합 모형) | 11.4 | 1,133 | 11.1 | 3 | 15.0 | 17.4 |
 
 주: 주간 원점 열을 뺀 모든 열은 월말 원점. 월말 원점은 60개, 그 가운데 6~9월 원점은 20개, 주간 원점은 261개. + 표시 행은 위 행에 해당 단계를 더한 모형.
 자료: 저자 작성.
@@ -207,7 +214,9 @@ $\hat{P}^{0}_t$는 앞 단계의 예측가격이고 $S_t$는 생산량 전망의
 
 자료: 저자 작성.
 
-수준 보정은 평균 오차율을 낮추지만 오차가 30%를 넘는 원점은 3개에서 4개로 늘린다. 보정 계수 $\theta$의 추정에 쓴 원점은 여름 14개, 가을 10개이고 p값은 0.57과 0.64여서 계수가 통계적으로 유의하지 않다. 출하량 전망을 빼고 생산량 전망만으로 모형을 고르면 2021~2025년의 결과는 같고 2026년 6월 말과 7월 말 원점의 선택만 달라진다. 모형을 고르는 생산량 전망의 기준값을 0 대신 −4.3%에서 +4.5% 사이의 어느 값으로 두어도 2021~2025년 월말 원점의 결과는 같다. 모형 선택에 쓰는 호를 발간 시점에 맞춰 한 호 늦추면 6~9월 월말 원점 20개 가운데 한 개의 선택이 바뀌고 평균 오차율은 11.9%로 같다. 같은 규칙을 월보 전망과 함께 2016~2020년에 소급하면 6~9월 원점의 오차는 오히려 커진다.
+9월 고온 보정이 2021~2025년에 예측을 바꾸는 원점은 2024년 9월 말 한 곳이다. 이 원점의 10월 가격 예측 오차는 −34%에서 +3%가 되고, 평균 오차율이 11.9%에서 11.4%로 낮아지는 것은 이 한 달에서 나온다. 2024년에 쓴 $\gamma$는 하루당 2.9%로, 9월이 더웠던 2023년의 오차에서 사실상 정해진 값이다. 2022년과 2025년은 가을배추 생산량 전망이 증가여서 보정하지 않는다.
+
+수준 보정은 평균 오차율을 낮추지만 오차가 30%를 넘는 원점은 3개에서 4개로 늘린다. 보정 계수 $\theta$의 추정에 쓴 원점은 여름 14개, 가을 10개이고 p값은 0.57과 0.64여서 계수가 통계적으로 유의하지 않다. 출하량 전망을 빼고 생산량 전망만으로 모형을 고르면 2021~2025년의 결과는 같고 2026년 6월 말과 7월 말 원점의 선택만 달라진다. 모형을 고르는 생산량 전망의 기준값을 0 대신 −4.3%에서 +4.5% 사이의 어느 값으로 두어도 2021~2025년 월말 원점의 결과는 같다. 모형 선택에 쓰는 호를 발간 시점에 맞춰 한 호 늦추면 6~9월 월말 원점 20개 가운데 한 개의 선택이 바뀌고 평균 오차율은 11.3%로 거의 같다. 같은 규칙을 월보 전망과 함께 2016~2020년에 소급하면 6~9월 원점의 오차는 오히려 커진다.
 
 ## 3.5. 주간 원점의 추적과 하락 전환
 
@@ -218,17 +227,17 @@ $\hat{P}^{0}_t$는 앞 단계의 예측가격이고 $S_t$는 생산량 전망의
 주: 음영은 9월.
 자료: 저자 작성.
 
-월말 원점에서도 급등 뒤의 전환은 맞지 않는다. 9월 말 원점의 10월 가격 예측 오차는 2022년 −15%, 2023년 −24%, 2024년 −34%이다. 대상월별 평균 오차율은 11월이 19.3%, 10월이 16.8%로 크고 9월이 7.4%, 2월이 7.6%로 작다. 2021년 1월 이후 69개 대상월 가운데 오차가 30%를 넘는 달은 2021년 1월, 2022년 8월과 11월, 2023년 12월, 2024년 10월의 5개이다. 이 가운데 넷은 작형이 바뀌는 시기에 가격이 오르내리는 때가 평년보다 몇 주 이르거나 늦었던 달이다.
+월말 원점에서도 급등 뒤의 전환은 잘 맞지 않는다. 9월 말 원점의 10월 가격 예측 오차는 2022년 −15%, 2023년 −24%이고, 2024년은 9월 고온 보정 전 −34%이다. 대상월별 평균 오차율은 11월이 19.3%, 8월이 14.0%로 크고 9월이 7.4%, 2월이 7.6%로 작다. 2021년 1월 이후 69개 대상월 가운데 오차가 30%를 넘는 달은 2021년 1월, 2022년 8월과 11월, 2023년 12월의 4개이다. 2022년 8월과 11월은 급등과 그 뒤의 하락이 평년과 다른 시기에 온 달이다.
 
 # 4. 요약 및 결론
 
 <!-- 4장 초고 (2026-11-17). 결론 문장은 이 장에만. 함의는 실증 수위까지, 후속 과제는 별도 문단. 수치는 3장 표와 같음. -->
 
-가격만 쓰는 회귀모형이 2024년 9월의 급등을 37% 낮게 예측한 것은 가격 정보의 한계가 아니라 예측을 최근 평균으로 되돌리는 모형 구조 때문이다. 같은 가격 이력만 쓰는 Chronos-2와 MSTL은 13~18% 낮게 예측하고, 평년 가격을 기준으로 현재의 가격 편차를 잇는 계절편차 모형은 2024년을 보지 않고 고른 설정으로 10% 낮게 예측한다. 계절편차 모형은 급등이 없던 2025년 9월을 21% 높게 예측한다. 농업관측 월보의 여름배추 생산·출하량 전망에 따라 모형을 바꾸고 예측 수준을 보정한 결합 모형은 2021~2025년 월말 원점의 평균 오차율이 11.9%로 가격만 쓰는 모형의 15.1%보다 낮고, 2024년 9월의 과소폭은 6%이다.
+가격만 쓰는 회귀모형이 2024년 9월의 급등을 37% 낮게 예측한 것은 가격 정보의 한계가 아니라 예측을 최근 평균으로 되돌리는 모형 구조 때문이다. 같은 가격 이력만 쓰는 Chronos-2와 MSTL은 13~18% 낮게 예측하고, 평년 가격을 기준으로 현재의 가격 편차를 잇는 계절편차 모형은 2024년을 보지 않고 고른 설정으로 10% 낮게 예측한다. 계절편차 모형은 급등이 없던 2025년 9월을 21% 높게 예측한다. 농업관측 월보의 여름배추 생산·출하량 전망에 따라 모형을 바꾸고 예측 수준을 보정한 결합 모형은 2021~2025년 월말 원점의 평균 오차율이 11.4%로 가격만 쓰는 모형의 15.1%보다 낮고, 2024년 9월의 과소폭은 6%이다.
 
-급등을 따라가는 모형과 평소에 정확한 모형은 서로 다르다. 2024년과 2025년의 8월은 고랭지 기온이 비슷하게 높았으나 9월 가격은 크게 달랐고, 가격과 기상 자료만으로는 어느 모형을 쓸지 정해지지 않는다. 농업관측의 생산·출하 전망은 이 선택에 쓸 수 있는 정보이다. 전망정보를 결합해 줄어든 평균 오차율 2.9%포인트는 대부분 공급이 늘 전망인 해에 모형을 바꾼 데에서 나온다. 농업관측이 이미 내고 있는 작형별 전망은 가격 예측모형의 입력으로 쓸 수 있다.
+급등을 따라가는 모형과 평소에 정확한 모형은 서로 다르다. 2024년과 2025년의 8월은 고랭지 기온이 비슷하게 높았으나 9월 가격은 크게 달랐고, 가격과 기상 자료만으로는 어느 모형을 쓸지 정해지지 않는다. 농업관측의 생산·출하 전망은 이 선택에 쓸 수 있는 정보이다. 모형 전환과 수준 보정으로 줄어든 평균 오차율 2.9%포인트는 대부분 공급이 늘 전망인 해에 모형을 바꾼 데에서 나온다. 농업관측이 이미 내고 있는 작형별 전망은 가격 예측모형의 입력으로 쓸 수 있다.
 
-모형을 고르는 기준은 2024년과 2025년의 결과를 본 뒤 정했고, 여러 규칙을 같은 2021~2025년 원점에서 거듭 평가해 골랐으므로 이 기간의 성과는 새 자료에서 얻을 성과보다 좋게 나왔을 수 있다. 월보 전망을 쓸 수 있는 해는 2021년 이후 여섯 해이고 그 가운데 급등은 두 번이다. 2026년은 생산량 전망이 감소였으나 급등이 없었고, 같은 규칙을 2016~2020년에 소급하면 오차가 커진다. 수준 보정 계수는 통계적으로 유의하지 않다. 급등 뒤의 하락 전환과 작형이 바뀌는 달의 오차는 줄지 않으며, 결합 모형도 급등한 해의 가격을 6~11% 낮게 예측한다. 월보의 전망을 전월 말부터 쓰는 것은 전망을 작성하는 기관 안에서만 가능하다. 기상의 평년 편차는 2010~2019년을 기준으로 구해 평가 기간의 일부가 기준 기간에 들어 있다.
+모형을 고르는 기준은 2024년과 2025년의 결과를 본 뒤 정했고, 여러 규칙을 같은 2021~2025년 원점에서 거듭 평가해 골랐으므로 이 기간의 성과는 새 자료에서 얻을 성과보다 좋게 나왔을 수 있다. 월보 전망을 쓸 수 있는 해는 2021년 이후 여섯 해이고 그 가운데 급등은 두 번이다. 2026년은 생산량 전망이 감소였으나 급등이 없었고, 같은 규칙을 2016~2020년에 소급하면 오차가 커진다. 수준 보정 계수는 통계적으로 유의하지 않다. 9월 고온 보정이 예측을 바꾼 달은 2024년 10월 하나여서 이 보정의 효과는 다른 해에서 확인되지 않았다. 작형이 바뀌는 달의 오차는 줄지 않으며, 결합 모형도 급등한 해의 가격을 6~11% 낮게 예측한다. 월보의 전망을 전월 말부터 쓰는 것은 전망을 작성하는 기관 안에서만 가능하다. 기상의 평년 편차는 2010~2019년을 기준으로 구해 평가 기간의 일부가 기준 기간에 들어 있다.
 
 후속 연구는 규칙을 정한 뒤에 쌓이는 원점으로 결합 모형을 다시 평가해야 한다. 급등한 해의 과소 예측을 줄이려면 공급 감소 전망일 때 쓰는 모형을 따로 다루어야 한다. 작형이 바뀌는 달의 오차는 가격이 오르내리는 시점에서 생기므로, 출하 시기를 알려 주는 정보와 구간 예측을 검토할 수 있다.
 

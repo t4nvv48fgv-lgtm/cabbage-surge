@@ -2,7 +2,7 @@
 
   그림 1  월평균 실제가격과 전월 말 예측(대상월 2021-01~2026-09): 실제, 결합 모형, 가격만 ridge
   그림 2  2024년 여름 주간 원점의 28일 평균가격 예측: 실제, 가격만 ridge, Chronos-2, MSTL+AutoETS, 계절편차 모형, 결합 모형
-결합 모형 = gate_predictions 의 final_base (모형 전환 + 겨울 전용 모형 + 수준 보정. 9월 고온 보정은 넣지 않은 값).
+결합 모형 = gate_predictions 의 final (모형 전환 + 겨울 전용 모형 + 수준 보정 + 9월 고온 보정).
 그림 속 이름은 원고 표의 모형 이름과 같게 쓴다(docs/EDIT_CHECKLIST.md §6-1). 제목은 그림에 넣지 않는다(캡션은 원고에).
 
 Usage: python tools/make_paper_figures.py
@@ -22,7 +22,7 @@ import pandas as pd  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT, FIG = ROOT / "outputs", ROOT / "figures" / "out"
-MODEL = "final_base"
+MODEL = "final"
 INK, INK2, GRID = "#1f1f1f", "#55534f", "#e4e2dd"
 ORANGE, GREY, BLUE, GREEN, VIOLET = "#e8622c", "#9a9893", "#2a78d6", "#1b9e77", "#7b5cd6"
 
