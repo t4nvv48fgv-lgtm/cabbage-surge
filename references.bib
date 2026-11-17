@@ -1,5 +1,312 @@
 % references.bib — cabbage-surge 논문 참고문헌 원본 (보호 파일: 승인 후 편집)
-% 규칙(AGENTS.md): 서지는 Crossref/KCI/출판사 페이지로 확인한 것만 등록. 원문을 읽지 않은 문헌은 wiki/literature/@key.md에 status: unread.
-% KREI 두 연구(Chronos-2 결과세미나 2026-09-30, 배추가격예측력개선 연구보고 2026-06)와 CABIS 산출물은
-% 인용 가능 범위를 사용자에게 확인한 뒤 등록한다. 원본은 docs/references/에 보존.
-% 2026-10-07 기준 등록 0건.
+% 규칙(AGENTS.md): 서지는 Crossref/KCI/출판사·기관 페이지로 확인한 것만 등록. 원문을 읽지 않은 문헌은 wiki/literature/@key.md에 status: unread(존재 인용만, 수치 인용 금지).
+% 2026-11-17 문헌 조사: 28건 등록(조사 기록 wiki/literature-review.md). 확인 방법과 수준은 각 문헌 노트의 status·"서지 확인" 절에 있다.
+% 미등록·미해결: KREI Chronos-2 결과세미나 자료(2026-09-30)는 공개 저장소에서 찾지 못해 등록하지 않음 — 원고에 [CITATION NEEDED] 1건으로 남김.
+
+% ───────────────────────── 국내: 배추 가격·수급 ─────────────────────────
+
+@techreport{han2026improving,
+  title       = {배추 가격 예측력 개선 연구},
+  author      = {한은수 and 윤성욱 and 김지수},
+  institution = {한국농촌경제연구원},
+  type        = {연구보고서 E2026-01},
+  year        = {2026},
+  url         = {https://repository.krei.re.kr/handle/2018.oak/33211},
+  note        = {KREI 연구보고서 공개 자료. 보고서에 "출처를 명시하면 자유롭게 인용할 수 있다"고 적혀 있음(2026-11-17 확인)}
+}
+
+@techreport{park2013forecast,
+  title       = {배추·무 예측모형 고도화 방안},
+  author      = {박지연 and 박영구},
+  institution = {한국농촌경제연구원},
+  type        = {기타연구보고 M125},
+  year        = {2013},
+  url         = {http://repository.krei.re.kr/handle/2018.oak/20758},
+  note        = {The Development of Chinese Cabbage and Radish Forecast Models}
+}
+
+@techreport{kim2026onion,
+  title       = {양파 가격 예측 고도화를 위한 인공지능(AI) 활용방안 연구},
+  author      = {김원태 and 문홍성 and 이미숙},
+  institution = {한국농촌경제연구원},
+  type        = {연구보고서 E2026-03},
+  year        = {2026},
+  url         = {https://repository.krei.re.kr/handle/2018.oak/33291},
+  note        = {A Study on the Application of Artificial Intelligence (AI) to Improve Onion Price Forecasting}
+}
+
+@article{choi2020weather,
+  title   = {기상환경 변화가 배추·무 단수와 가격변동성에 미치는 영향 분석},
+  author  = {최병옥 and 최선우 and 임효빈},
+  journal = {농촌경제},
+  year    = {2020},
+  volume  = {43},
+  number  = {1},
+  pages   = {21--47},
+  url     = {https://repository.krei.re.kr/handle/2018.oak/24802},
+  note    = {An Impact Assessment of Weather Changes on Yield and Price for Chinese cabbage and Korean radish. 권·호는 보고서 번호 RE43-1-02와 기존 서지(생육 프로젝트)와 일치, 기관 저장소 페이지에는 권·호 표기 없음}
+}
+
+% 한글 저자명은 확인하지 못해 Crossref의 로마자 표기를 썼다(2018·2022). 확인되면 한글로 교체.
+@article{lee2018disposal,
+  title   = {배추 산지폐기의 가격안정화 효과에 대한 사후분석},
+  author  = {Lee, Dal Seog and Kim, In Seck},
+  journal = {농업경제연구},
+  year    = {2018},
+  volume  = {59},
+  number  = {4},
+  pages   = {37--58},
+  doi     = {10.24997/kjae.2018.59.4.37},
+  note    = {An Ex-post Analysis on the Price Stabilization Effects of Disposal Policy for Chinese Cabbage}
+}
+
+@article{suh2008reliability,
+  title   = {신뢰성 해석기법을 이용한 배추 가격 예측 모형의 개발},
+  author  = {서교 and 김태곤 and 이정재},
+  journal = {한국농공학회논문집},
+  year    = {2008},
+  volume  = {50},
+  number  = {3},
+  pages   = {71--79},
+  doi     = {10.5389/ksae.2008.50.3.071},
+  note    = {Reliability Analysis for Price Forecasting of Chinese Cabbage}
+}
+
+% 등록 DOI 10.7465/jkdi.2017.28.3.617은 doi.org 미해석(생육·저장 프로젝트에서 확인된 사실). KoreaScience 주소로 대체.
+@article{jang2017unstructured,
+  title   = {비정형 농업기상자료를 활용한 배추 도매가격 예측모형 연구},
+  author  = {장수희 and 전희주 and 조인호 and 김동환},
+  journal = {한국데이터정보과학회지},
+  year    = {2017},
+  volume  = {28},
+  number  = {3},
+  pages   = {617--624},
+  url     = {https://koreascience.kr/article/JAKO201718555880543.page}
+}
+
+@article{park2022growing,
+  title   = {생육시기 기상을 활용한 배추 가격 예측},
+  author  = {Park, So-Yeon and Kim, Dong-Eon and Kim, Min Soo},
+  journal = {한국자료분석학회지},
+  year    = {2022},
+  volume  = {24},
+  number  = {5},
+  pages   = {1667--1679},
+  doi     = {10.37727/jkdas.2022.24.5.1667},
+  note    = {Prediction of Chinese cabbage price using growing season weather}
+}
+
+% ───────────────────────── 국외: 농산물 가격 예측 ─────────────────────────
+
+@article{paul2022brinjal,
+  title   = {Machine learning techniques for forecasting agricultural prices: A case of brinjal in Odisha, India},
+  author  = {Paul, Ranjit Kumar and Yeasin, Md. and Kumar, Pramod and Kumar, Prabhakar and Balasubramanian, M. and Roy, H. S. and Paul, A. K. and Gupta, Ajit},
+  journal = {PLOS ONE},
+  year    = {2022},
+  volume  = {17},
+  number  = {7},
+  pages   = {e0270553},
+  doi     = {10.1371/journal.pone.0270553}
+}
+
+@article{zhang2024vegetable,
+  title   = {Short-term forecasting of vegetable prices based on LSTM model---Evidence from Beijing's vegetable data},
+  author  = {Zhang, Qi and Yang, Weijia and Zhao, Anping and Wang, Xiaodong and Wang, Zengfei and Zhang, Lin},
+  journal = {PLOS ONE},
+  year    = {2024},
+  volume  = {19},
+  number  = {7},
+  pages   = {e0304881},
+  doi     = {10.1371/journal.pone.0304881}
+}
+
+@article{manogna2025agricultural,
+  title   = {Enhancing agricultural commodity price forecasting with deep learning},
+  author  = {Manogna, R. L. and Dharmaji, Vijay and Sarang, S.},
+  journal = {Scientific Reports},
+  year    = {2025},
+  volume  = {15},
+  number  = {1},
+  pages   = {20903},
+  doi     = {10.1038/s41598-025-05103-z}
+}
+
+% ───────────────────────── 예측 방법·평가 ─────────────────────────
+
+@article{ansari2024chronos,
+  title   = {Chronos: Learning the Language of Time Series},
+  author  = {Ansari, Abdul Fatir and Stella, Lorenzo and Turkmen, Ali Caner and Zhang, Xiyuan and Mercado, Pedro and Shen, Huibin and Shchur, Oleksandr and Rangapuram, Syama Sundar and Arango, Sebastian Pineda and Kapoor, Shubham and Zschiegner, Jasper and Maddix, Danielle C. and Wang, Hao and Mahoney, Michael W. and Torkkola, Kari and Wilson, Andrew Gordon and Bohlke-Schneider, Michael and Wang, Bernie},
+  journal = {Transactions on Machine Learning Research},
+  year    = {2024},
+  issn    = {2835-8856},
+  url     = {https://openreview.net/forum?id=gerNCVqqtR},
+  note    = {TMLR 공식 논문 목록(2024년 11월)과 공식 서지 파일로 확인(2026-11-17). 사전출판본 arXiv:2403.07815. 마지막 저자 표기는 TMLR 목록의 Bernie Wang(arXiv 표기 Yuyang Wang)을 따름}
+}
+
+@misc{ansari2025chronos2,
+  title         = {Chronos-2: From Univariate to Universal Forecasting},
+  author        = {Ansari, Abdul Fatir and Shchur, Oleksandr and K{\"u}ken, Jaris and Auer, Andreas and Han, Boran and Mercado, Pedro and Rangapuram, Syama Sundar and Shen, Huibin and Stella, Lorenzo and Zhang, Xiyuan and Goswami, Mononito and Kapoor, Shubham and Maddix, Danielle C. and Guerron, Pablo and Hu, Tony and Yin, Junming and Erickson, Nick and Desai, Prateek Mutalik and Wang, Hao and Rangwala, Huzefa and Karypis, George and Wang, Yuyang and Bohlke-Schneider, Michael},
+  year          = {2025},
+  eprint        = {2510.15821},
+  archiveprefix = {arXiv},
+  url           = {https://arxiv.org/abs/2510.15821}
+}
+
+@article{bandara2025mstl,
+  title   = {{MSTL}: a seasonal-trend decomposition algorithm for time series with multiple seasonal patterns},
+  author  = {Bandara, Kasun and Hyndman, Rob J. and Bergmeir, Christoph},
+  journal = {International Journal of Operational Research},
+  year    = {2025},
+  volume  = {52},
+  number  = {1},
+  pages   = {79--98},
+  doi     = {10.1504/IJOR.2025.143957}
+}
+
+@article{hyndman2008automatic,
+  title   = {Automatic time series forecasting: The forecast package for {R}},
+  author  = {Hyndman, Rob J. and Khandakar, Yeasmin},
+  journal = {Journal of Statistical Software},
+  year    = {2008},
+  volume  = {27},
+  number  = {3},
+  doi     = {10.18637/jss.v027.i03}
+}
+
+@article{hyndman2002state,
+  title   = {A state space framework for automatic forecasting using exponential smoothing methods},
+  author  = {Hyndman, Rob J. and Koehler, Anne B. and Snyder, Ralph D. and Grose, Simone},
+  journal = {International Journal of Forecasting},
+  year    = {2002},
+  volume  = {18},
+  number  = {3},
+  pages   = {439--454},
+  doi     = {10.1016/S0169-2070(01)00110-8}
+}
+
+@article{hoerl1970ridge,
+  title   = {Ridge regression: Biased estimation for nonorthogonal problems},
+  author  = {Hoerl, Arthur E. and Kennard, Robert W.},
+  journal = {Technometrics},
+  year    = {1970},
+  volume  = {12},
+  number  = {1},
+  pages   = {55--67},
+  doi     = {10.1080/00401706.1970.10488634}
+}
+
+@article{friedman2001greedy,
+  title   = {Greedy function approximation: A gradient boosting machine},
+  author  = {Friedman, Jerome H.},
+  journal = {The Annals of Statistics},
+  year    = {2001},
+  volume  = {29},
+  number  = {5},
+  pages   = {1189--1232},
+  doi     = {10.1214/aos/1013203451}
+}
+
+@article{pedregosa2011scikit,
+  title   = {Scikit-learn: Machine learning in {P}ython},
+  author  = {Pedregosa, Fabian and Varoquaux, Ga{\"e}l and Gramfort, Alexandre and Michel, Vincent and Thirion, Bertrand and Grisel, Olivier and Blondel, Mathieu and Prettenhofer, Peter and Weiss, Ron and Dubourg, Vincent and Vanderplas, Jake and Passos, Alexandre and Cournapeau, David and Brucher, Matthieu and Perrot, Matthieu and Duchesnay, {\'E}douard},
+  journal = {Journal of Machine Learning Research},
+  year    = {2011},
+  volume  = {12},
+  pages   = {2825--2830},
+  url     = {https://jmlr.org/papers/v12/pedregosa11a.html}
+}
+
+@article{tashman2000out,
+  title   = {Out-of-sample tests of forecasting accuracy: An analysis and review},
+  author  = {Tashman, Leonard J.},
+  journal = {International Journal of Forecasting},
+  year    = {2000},
+  volume  = {16},
+  number  = {4},
+  pages   = {437--450},
+  doi     = {10.1016/S0169-2070(00)00065-0}
+}
+
+@article{bergmeir2012use,
+  title   = {On the use of cross-validation for time series predictor evaluation},
+  author  = {Bergmeir, Christoph and Ben{\'i}tez, Jos{\'e} M.},
+  journal = {Information Sciences},
+  year    = {2012},
+  volume  = {191},
+  pages   = {192--213},
+  doi     = {10.1016/j.ins.2011.12.028}
+}
+
+@article{hyndman2006another,
+  title   = {Another look at measures of forecast accuracy},
+  author  = {Hyndman, Rob J. and Koehler, Anne B.},
+  journal = {International Journal of Forecasting},
+  year    = {2006},
+  volume  = {22},
+  number  = {4},
+  pages   = {679--688},
+  doi     = {10.1016/j.ijforecast.2006.03.001}
+}
+
+% ───────────────────────── 예측조합·판단 조정 ─────────────────────────
+
+@article{bates1969combination,
+  title   = {The combination of forecasts},
+  author  = {Bates, J. M. and Granger, C. W. J.},
+  journal = {Journal of the Operational Research Society},
+  year    = {1969},
+  volume  = {20},
+  number  = {4},
+  pages   = {451--468},
+  doi     = {10.1057/jors.1969.103}
+}
+
+@incollection{timmermann2006forecast,
+  title     = {Forecast combinations},
+  author    = {Timmermann, Allan},
+  booktitle = {Handbook of Economic Forecasting},
+  publisher = {Elsevier},
+  year      = {2006},
+  pages     = {135--196},
+  doi       = {10.1016/S1574-0706(05)01004-9}
+}
+
+@article{fildes2009effective,
+  title   = {Effective forecasting and judgmental adjustments: An empirical evaluation and strategies for improvement in supply-chain planning},
+  author  = {Fildes, Robert and Goodwin, Paul and Lawrence, Michael and Nikolopoulos, Konstantinos},
+  journal = {International Journal of Forecasting},
+  year    = {2009},
+  volume  = {25},
+  number  = {1},
+  pages   = {3--23},
+  doi     = {10.1016/j.ijforecast.2008.11.010}
+}
+
+% ───────────────────────── 자료 출처 (통계·DB, 검색일 2026-11-17) ─────────────────────────
+
+@online{kreiaglook,
+  title        = {엽근채소 관측월보},
+  author       = {{한국농촌경제연구원 농업관측센터}},
+  date         = {2026-11-17},
+  url          = {http://aglook.krei.re.kr},
+  urldate      = {2026-11-17},
+  note         = {월별 발간. 기관 사이트는 화면 구성상 본문을 읽지 못했고, KREI 보도자료(2021-11-02)에서 농업관측센터의 엽근채소 월보와 사이트 주소를 확인함. 정확한 간행물명은 사용자 확인 대기}
+}
+
+@online{seoulagro,
+  title        = {가락시장 경락 정보},
+  author       = {{서울특별시농수산식품공사}},
+  date         = {2026-11-17},
+  url          = {http://www.garak.co.kr},
+  urldate      = {2026-11-17},
+  note         = {가락시장 일별 경락가격·반입량. 수집 경로는 CABIS의 가락시장 공개자료 수집기(garak.co.kr/homepage/publicdata)이며 기관 사이트에서 운영 기관명을 확인함. 조사명·검색일은 사용자 확인 대기}
+}
+
+@online{kmaapihub,
+  title        = {기상청 {API}허브: 지상관측 자료},
+  author       = {{기상청}},
+  date         = {2026-11-17},
+  url          = {https://apihub.kma.go.kr},
+  urldate      = {2026-11-17},
+  note         = {종관기상관측(ASOS)·방재기상관측(AWS) 일별 자료. API허브 사이트의 지상관측 분류와 ASOS 일자료 서비스를 확인했고 AWS 일자료 서비스명은 확인하지 못함}
+}
