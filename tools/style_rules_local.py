@@ -13,4 +13,4 @@ ALLOW = [
     "경쟁적 저장",   # 이론 용어 (competitive storage) — 금지어 '경쟁작형'과 구분
 ]
 LABEL_PREFIX_EXTRA = ()
-PLACEHOLDERS_IGNORE = ["[미작성", "[미정", "<미정>"]   # 뼈대 단계에서는 자리표시자가 정상 — 집필 시작 후 이 줄을 비울 것
+PLACEHOLDERS_IGNORE = []   # 2026-11-17 초고 작성으로 비움(뼈대 단계의 [미작성·[미정 무시를 끔)
