@@ -55,15 +55,15 @@ def main():
     y, yw = m.origin.dt.year, w.origin.dt.year
 
     print("### 표 2. 기초 통계량")
-    rows = [("28일 평균가격, 월말 원점 전체", m.actual), ("28일 평균가격, 6~9월 원점", m.actual[m.summer == 1]),
-            ("28일 평균가격, 8월 말 원점", m.actual[m.origin.dt.month == 8]), ("여름배추 생산량 전망 전년비", m.S1.dropna())]
+    rows = [("28일 평균가격, 월말 예측 시점 전체", m.actual), ("28일 평균가격, 6~9월 예측 시점", m.actual[m.summer == 1]),
+            ("28일 평균가격, 8월 말 예측 시점", m.actual[m.origin.dt.month == 8]), ("여름배추 생산량 전망 전년비", m.S1.dropna())]
     print("| 변수 | n | 평균 | 중앙값 | 최소 | 최대 | 표준편차 | 왜도 | 첨도 |\n|:---|---:|---:|---:|---:|---:|---:|---:|---:|")
     for name, x in rows:
         f = (lambda v: f"{v:,.0f}") if x.mean() > 100 else (lambda v: f"{v:.1f}".replace("-", "−"))
         print(f"| {name} | {len(x)} | {f(x.mean())} | {f(x.median())} | {f(x.min())} | {f(x.max())} | {f(x.std())} | "
               f"{st.skew(x, bias=False):.2f} | {st.kurtosis(x, bias=False):.2f} |".replace("-", "−"))
 
-    print("\n### 표 3. 8월 말 원점의 9월 가격 예측 (과소폭·과대폭 %, 2021~2025 평균 오차율)")
+    print("\n### 표 3. 8월 말 시점의 9월 가격 예측 (과소폭·과대폭 %, 2021~2025 평균 오차율)")
     models = [("가격만 ridge", "price_only_ridge", "가격"), ("Chronos-2 제로샷", "chronos2", "가격(월평균 계열)"), ("MSTL+AutoARIMA", "mstl_arima", "가격(월평균 계열)"),
               ("MSTL+AutoETS", "mstl_ets", "가격(월평균 계열)"), ("기상 ridge", "wx_ridge", "가격·반입량·기상"), ("기상 HGB", "wx_hgb", "가격·반입량·기상"),
               ("여름특화 HGB", "calm_avg", "가격·반입량·기상"), ("계절편차 모형", "head", "평년 대비 가격 편차·반입량·고랭지 기상"), ("결합 모형", MODEL, "계절편차 모형·여름특화 HGB·농업관측 전망")]
@@ -75,7 +75,7 @@ def main():
         print(f"| {name} | {info} | " + " | ".join(e) + f" | {mp:.1f} |")
     print("실제(원/10kg):", {yy: round(float(m.loc[m.origin == f'{yy}-08-31', 'actual'].iloc[0])) for yy in yrs})
 
-    print("\n### 표 4. 8월 말 원점의 연도별 예측")
+    print("\n### 표 4. 8월 말 시점의 연도별 예측")
     print("| 연도 | 생산량 전망 전년비(%) | 출하량 전망 | 적용 모형 | 실제 가격(원/10kg) | 가격만 ridge | 계절편차 모형 | 여름특화 HGB | 결합 모형 |\n|---|---:|---|---|---:|---:|---:|---:|---:|")
     for yy in range(2021, 2027):
         r = m[m.origin == f"{yy}-08-31"].iloc[0]
@@ -84,7 +84,7 @@ def main():
 
     print("\n### 표 5. 단계별 예측 성과")
     S, SW = stages(m, True), stages(w, False)
-    print("| 모형 | 평균 오차율(%) | 평균 절대오차(원/10kg) | 6~9월 원점 평균 오차율(%) | 오차 30% 초과 원점 수 | 주간 원점 평균 오차율(%) | 2016~2020년 평균 오차율(%) |\n|:---|---:|---:|---:|---:|---:|---:|")
+    print("| 모형 | 평균 오차율(%) | 평균 절대오차(원/10kg) | 6~9월 예측 시점 평균 오차율(%) | 오차 30% 초과 예측 시점 수 | 주간 예측 시점 평균 오차율(%) | 2016~2020년 평균 오차율(%) |\n|:---|---:|---:|---:|---:|---:|---:|")
     for c in S.columns:
         e = (S[c] / m.actual - 1).abs() * 100
         ew = (SW[c] / w.actual - 1).abs() * 100

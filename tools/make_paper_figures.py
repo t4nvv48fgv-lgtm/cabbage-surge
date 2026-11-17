@@ -1,7 +1,7 @@
 """원고(manuscript/main.md) 그림 생성. 수치는 outputs/*.csv 에서 직접 읽는다.
 
   그림 1  월평균 실제가격과 전월 말 예측(대상월 2021-01~2026-09): 실제, 결합 모형, 가격만 ridge
-  그림 2  2024년 여름 주간 원점의 28일 평균가격 예측: 실제, 가격만 ridge, Chronos-2, MSTL+AutoETS, 계절편차 모형, 결합 모형
+  그림 2  2024년 여름 주간 예측 시점별 28일 평균가격 예측: 실제, 가격만 ridge, Chronos-2, MSTL+AutoETS, 계절편차 모형, 결합 모형
 결합 모형 = gate_predictions 의 final (모형 전환 + 겨울 전용 모형 + 수준 보정 + 9월 고온 보정).
 그림 속 이름은 원고 표의 모형 이름과 같게 쓴다(docs/EDIT_CHECKLIST.md §6-1). 제목은 그림에 넣지 않는다(캡션은 원고에).
 
@@ -73,7 +73,7 @@ def fig2():
     ax.plot(d.origin, d.an_sparse_all / 1000, color=BLUE, lw=1.6, label="계절편차 모형")
     ax.plot(d.origin, d[MODEL] / 1000, color=ORANGE, lw=2.0, label="결합 모형")
     ax.set_ylabel("천원/10kg", fontsize=9, color=INK2)
-    ax.set_xlabel("원점(매주 일요일)", fontsize=9, color=INK2)
+    ax.set_xlabel("예측 시점(매주 일요일)", fontsize=9, color=INK2)
     ax.xaxis.set_major_locator(mdates.MonthLocator())
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
     ax.legend(loc="upper left", fontsize=8.5, frameon=False, ncol=2)
