@@ -111,8 +111,10 @@ check("2024-09-30 γ(%/일) 현재", float(r.heat_gamma_pct), 2.9, 0.05)
 check("2024-09-30 γ(%/일) 종전", float(m0[m0.origin == "2024-09-30"].heat_gamma_pct.iloc[0]), 2.8, 0.05)
 fl = pd.read_csv(OUT / "forecast_live.csv", parse_dates=["origin"], encoding="utf-8-sig")
 r = fl[(fl.origin == "2026-09-30") & (fl.rule == "M")].iloc[0]
-check("2026-09-30 final_base(원)", float(r.final_base), 7871.58, 0.01)
-check("2026-09-30 final(원)", float(r.final), 8778.35, 0.01)
+# 2026-11-17: 판독표에 10월호를 넣은 뒤의 값(여름 생산 −3.6 → 수준 조정 +2.0%, 가을 생산 +13.7 → 9월 고온 층 꺼짐).
+# 6차 편입 때의 값 7,871.58 / 8,778.35 는 10월호가 없어 9월호로 계산한 임시값이었다.
+check("2026-09-30 final_base(원)", float(r.final_base), 7889.08, 0.01)
+check("2026-09-30 final(원)", float(r.final), 7889.08, 0.01)
 check("2026-09-30 γ(%/일)", float(r.heat_gamma_pct), 2.80, 0.005)
 check("2026-09-30 상태", r.state, "경보")
 # 8. 대상월별 표
